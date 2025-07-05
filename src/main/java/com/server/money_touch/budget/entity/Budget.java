@@ -15,7 +15,8 @@ public class Budget extends BaseEntity {
     private Integer budgetTotal;
 
     // 가져온 소비 루틴 여부, default는 false
-    private boolean isFromRoutine;
+    @Column(columnDefinition = "TINYINT(1) DEFAULT 0", nullable = false)
+    private Boolean isFromRoutine = false;
 
     // 예산-유저 다대일 연관관계
 }
