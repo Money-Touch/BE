@@ -2,7 +2,6 @@ package com.server.money_touch.budget.entity;
 
 import com.server.money_touch.global.apiPayload.code.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter
@@ -12,8 +11,7 @@ import lombok.*;
 @Entity
 public class BudgetCategory extends BaseEntity {
     // 예산 카테고리 이름: 배달/외식, 교통비 등
-    @Size(max = 8)
-    @Column(length = 24, nullable = false)
+    @Column(length = 8, nullable = false)
     private String budgetCategoryName;
 
     // 예산 카테고리 타입: 기본 카테고리 / 내 카테고리 / 소비 루틴 카테고리
