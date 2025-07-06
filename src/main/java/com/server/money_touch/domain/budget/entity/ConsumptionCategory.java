@@ -1,11 +1,9 @@
 package com.server.money_touch.domain.budget.entity;
 
 import com.server.money_touch.domain.budget.enums.CategoryType;
+import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.global.apiPayload.code.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
@@ -22,4 +20,9 @@ public class ConsumptionCategory extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CategoryType budgetCategoryType;
+
+    // 소비 카테고리-유저 다대일 연관관계
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }
