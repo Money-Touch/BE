@@ -1,5 +1,6 @@
 package com.server.money_touch.domain.consumptionRecord.entity;
 
+import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.global.apiPayload.code.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -15,7 +16,13 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 public class Comment extends BaseEntity {
 
-    // 소비기록 외래키 연결
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "consumption_record_id", nullable = false)
+    private ConsumptionRecord consumptionRecord;
 
     // 대댓글을 위한 부모 댓글 id , null 이면 일반 댓글
     @ManyToOne(fetch = FetchType.LAZY)
