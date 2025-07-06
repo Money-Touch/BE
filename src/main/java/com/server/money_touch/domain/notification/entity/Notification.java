@@ -1,6 +1,7 @@
 package com.server.money_touch.domain.notification.entity;
 
 
+import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.global.apiPayload.code.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,6 +14,17 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class Notification extends BaseEntity {
 
+    // 알림 수신자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // 알림 유형
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_type_id", nullable = false)
+    private NotificationType notificationType;
+
+    // 알림 발신자
     @Column(nullable = false)
     private Long senderId;
 
