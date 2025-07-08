@@ -40,6 +40,12 @@ dependencies {
 	// SpringDoc (OpenAPI/Swagger for Spring Boot 3.x)
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
+	// Bean Validation을 위한 Hibernate Validator
+	implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final'
+
+	// validation
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // 테스트 런처 (IDE 연동 시 사용)
