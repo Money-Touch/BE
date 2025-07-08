@@ -27,6 +27,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 고정비 관련 에러
     FIXED_CONSUMPTION_NOT_FOUND(HttpStatus.BAD_REQUEST, "FIXED_CONSUMPTION4001", "아이디와 일치하는 고정비가 없습니다.");
 
+    // 소비 기록 에러
+
+
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;
