@@ -8,6 +8,7 @@ import com.server.money_touch.global.apiPayload.code.status.SuccessStatus;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExamples;
 import com.server.money_touch.global.validation.annotation.ApiSuccessCodeExample;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -21,6 +22,8 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.lang.reflect.Field;
 
 @Configuration
 public class SwaggerConfig {
@@ -53,7 +56,6 @@ public class SwaggerConfig {
     @Bean
     public OperationCustomizer customize() {
         return (operation, handlerMethod) -> {
-            // 여러 에러 예시 처리
             ApiErrorCodeExamples errorAnnotations = handlerMethod.getMethodAnnotation(ApiErrorCodeExamples.class);
             if (errorAnnotations != null) {
                 for (ApiErrorCodeExample e : errorAnnotations.value()) {
@@ -66,7 +68,6 @@ public class SwaggerConfig {
                 }
             }
 
-            // 성공 예시 처리
             ApiSuccessCodeExample successAnnotation = handlerMethod.getMethodAnnotation(ApiSuccessCodeExample.class);
             if (successAnnotation != null) {
                 generateSuccessCodeResponseExample(operation, successAnnotation.resultClass());
@@ -110,37 +111,36 @@ public class SwaggerConfig {
     }
 
     private void generateSuccessCodeResponseExample(Operation operation, Class<?> resultClass) {
-        ReasonDTO reason = SuccessStatus._OK.getReasonHttpStatus(); // 공통 메시지 사용
+        ReasonDTO reason = SuccessStatus._OK.getReasonHttpStatus();
         String httpStatusCode = String.valueOf(reason.getHttpStatus().value());
 
         String resultJson;
         try {
-            Object dtoInstance = resultClass.getDeclaredConstructor().newInstance();
+            Object dtoInstance = generateDtoFromSchemaExample(resultClass); // ← 수정된 부분
             String dtoJson = objectMapper.writeValueAsString(dtoInstance);
 
             resultJson = String.format("""
-        {
-          "isSuccess": true,
-          "code": "%s",
-          "message": "%s",
-          "result": %s
-        }
-        """, reason.getCode(), reason.getMessage(), dtoJson);
+            {
+              "isSuccess": true,
+              "code": "%s",
+              "message": "%s",
+              "result": %s
+            }
+            """, reason.getCode(), reason.getMessage(), dtoJson);
 
         } catch (Exception e) {
             resultJson = String.format("""
-        {
-          "isSuccess": true,
-          "code": "%s",
-          "message": "%s",
-          "result": {}
-        }
-        """, reason.getCode(), reason.getMessage());
+            {
+              "isSuccess": true,
+              "code": "%s",
+              "message": "%s",
+              "result": {}
+            }
+            """, reason.getCode(), reason.getMessage());
         }
 
         Content content = new Content();
         MediaType mediaType = new MediaType();
-        mediaType.addExamples("Success", new Example().value(resultJson));
         content.addMediaType("application/json", mediaType);
 
         io.swagger.v3.oas.models.responses.ApiResponse apiResponse =
@@ -149,7 +149,35 @@ public class SwaggerConfig {
                         .content(content);
 
         operation.getResponses().put(httpStatusCode, apiResponse);
-
         mediaType.addExamples("COMMON200", new Example().value(resultJson));
+    }
+
+    private Object generateDtoFromSchemaExample(Class<?> dtoClass) {
+        try {
+            Object instance = dtoClass.getDeclaredConstructor().newInstance();
+            for (Field field : dtoClass.getDeclaredFields()) {
+                field.setAccessible(true);
+                Schema schema = field.getAnnotation(Schema.class);
+                if (schema != null && !schema.example().isEmpty()) {
+                    Object exampleValue = convertToFieldType(schema.example(), field.getType());
+                    if (exampleValue != null) {
+                        field.set(instance, exampleValue);
+                    }
+                }
+            }
+            return instance;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Object convertToFieldType(String example, Class<?> type) {
+        try {
+            if (type == String.class) return example;
+            if (type == Integer.class || type == int.class) return Integer.parseInt(example);
+            if (type == Long.class || type == long.class) return Long.parseLong(example);
+            if (type == Boolean.class || type == boolean.class) return Boolean.parseBoolean(example);
+        } catch (Exception ignored) {}
+        return null;
     }
 }
