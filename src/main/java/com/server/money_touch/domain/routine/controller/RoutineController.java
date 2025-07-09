@@ -49,9 +49,9 @@ public class RoutineController {
         return ApiResponse.onSuccess(response);
     }
 
-    //내 소비 루틴 목록 조회
+    // 내 소비 루틴 목록 조회
     @Operation(
-            summary = "사용자가 등록한 소비 루틴 조회 API",
+            summary = "사용자가 등록한 소비 루틴 목록 조회 API",
             description = "가계부에서 사용자가 등록한 소비 루틴 목록을 조회하는 API입니다."
     )
 //    @ApiSuccessCodeExample(resultClass = RoutineResponse.MyRoutineListDTO.class)
