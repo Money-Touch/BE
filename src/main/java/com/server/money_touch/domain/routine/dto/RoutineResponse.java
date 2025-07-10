@@ -1,6 +1,5 @@
 package com.server.money_touch.domain.routine.dto;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
