@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/fixed-consumptions")
+@RequestMapping("/api/house-holds/fixed-consumptions")
 public class FixedConsumptionController {
 
     @Operation(

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/budgets")
+@RequestMapping("/api/house-holds/budgets")
 public class BudgetController {
 
     // 가계부 한 달 예산 등록

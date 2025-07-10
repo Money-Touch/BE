@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/routines")
+@RequestMapping("/api/house-holds/routines")
 public class RoutineController {
 
     // 소비 루틴 등록
