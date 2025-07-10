@@ -132,4 +132,28 @@ public class FeedController {
         FeedResponse.ReactionResultDTO response = FeedResponse.ReactionResultDTO.builder().build();
         return ApiResponse.onSuccess(response);
     }
+
+    // 피드 조회수 증가
+    @Operation(
+            summary = "피드 조회수 증가 API",
+            description = "피드를 조회할 때 조회수를 증가시키는 API입니다. 중복 조회는 제한됩니다."
+    )
+//    @ApiSuccessCodeExample(resultClass = FeedResponse.ViewCountResultDTO.class)
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_RECORD_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
+    })
+    @Parameters({
+            @Parameter(name = "consumptionRecordId", description = "소비 기록 ID", example = "1", required = true)
+    })
+    @PatchMapping("/{consumptionRecordId}/view")
+    public ApiResponse<FeedResponse.ViewCountResultDTO> increaseFeedViewCount(
+//            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long consumptionRecordId
+    ) {
+        FeedResponse.ViewCountResultDTO response = FeedResponse.ViewCountResultDTO.builder().build();
+        return ApiResponse.onSuccess(response);
+    }
 }

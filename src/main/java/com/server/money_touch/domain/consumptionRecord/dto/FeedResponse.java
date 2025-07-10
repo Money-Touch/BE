@@ -143,4 +143,19 @@ public class FeedResponse {
         @Schema(description = "현재 내가 누른 리액션 타입 (없으면 null)", example = "WISE")
         private String myReaction;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "조회수 증가 결과 DTO")
+    public static class ViewCountResultDTO {
+
+        @Schema(description = "소비 기록 ID", example = "1")
+        private Long consumptionRecordId;
+
+        @Schema(description = "증가된 조회수", example = "22")
+        private Integer viewCount;
+
+    }
 }
