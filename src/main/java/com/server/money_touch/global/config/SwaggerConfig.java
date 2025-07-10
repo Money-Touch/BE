@@ -19,6 +19,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +27,13 @@ import org.springframework.context.annotation.Configuration;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
+
+@Slf4j
 @Configuration
 public class SwaggerConfig {
 
@@ -157,6 +163,7 @@ public class SwaggerConfig {
 
     private Object generateDtoFromSchemaExample(Class<?> dtoClass) throws Exception {
         Object instance = dtoClass.getDeclaredConstructor().newInstance();
+
         for (Field field : dtoClass.getDeclaredFields()) {
             field.setAccessible(true);
 
@@ -164,16 +171,30 @@ public class SwaggerConfig {
             if (schema == null) continue;
 
             String exampleValue = schema.example();
-            Class<?> fieldType = field.getType();
-
             if (exampleValue.isEmpty()) continue;
+
+            Class<?> fieldType = field.getType();
 
             if (fieldType == String.class) {
                 field.set(instance, exampleValue);
+
             } else if (fieldType == Integer.class || fieldType == int.class) {
                 field.set(instance, Integer.parseInt(exampleValue));
+
             } else if (fieldType == Long.class || fieldType == long.class) {
                 field.set(instance, Long.parseLong(exampleValue));
+
+            } else if (fieldType == LocalDateTime.class) {
+                try {
+                    // Swagger에 입력된 example 문자열을 LocalDateTime으로 변환
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                    LocalDateTime parsed = LocalDateTime.parse(exampleValue.trim(), formatter);
+                    field.set(instance, parsed);
+                    log.info(parsed.toString());
+                } catch (DateTimeParseException e) {
+                    log.warn("LocalDateTime 파싱 실패: {}, 기본값 null 처리", exampleValue);
+                    field.set(instance, null);
+                }
             } else if (List.class.isAssignableFrom(fieldType)) {
                 // 리스트 타입 처리
                 Type genericType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
@@ -181,41 +202,14 @@ public class SwaggerConfig {
                     Object childDto = generateDtoFromSchemaExample(genericClass);
                     field.set(instance, List.of(childDto));
                 }
+
             } else {
-                // nested DTO 객체라면 재귀적으로 생성
+                // nested DTO 객체 처리
                 Object nestedObject = generateDtoFromSchemaExample(fieldType);
                 field.set(instance, nestedObject);
             }
         }
+
         return instance;
-    }
-
-//    private Object generateDtoFromSchemaExample(Class<?> dtoClass) {
-//        try {
-//            Object instance = dtoClass.getDeclaredConstructor().newInstance();
-//            for (Field field : dtoClass.getDeclaredFields()) {
-//                field.setAccessible(true);
-//                Schema schema = field.getAnnotation(Schema.class);
-//                if (schema != null && !schema.example().isEmpty()) {
-//                    Object exampleValue = convertToFieldType(schema.example(), field.getType());
-//                    if (exampleValue != null) {
-//                        field.set(instance, exampleValue);
-//                    }
-//                }
-//            }
-//            return instance;
-//        } catch (Exception e) {
-//            return null;
-//        }
-//    }
-
-    private Object convertToFieldType(String example, Class<?> type) {
-        try {
-            if (type == String.class) return example;
-            if (type == Integer.class || type == int.class) return Integer.parseInt(example);
-            if (type == Long.class || type == long.class) return Long.parseLong(example);
-            if (type == Boolean.class || type == boolean.class) return Boolean.parseBoolean(example);
-        } catch (Exception ignored) {}
-        return null;
     }
 }

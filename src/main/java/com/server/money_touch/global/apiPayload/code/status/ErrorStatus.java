@@ -26,10 +26,10 @@ public enum ErrorStatus implements BaseErrorCode {
     BUDGET_NOT_EXIST(HttpStatus.NOT_FOUND, "BUDGET_4041", "이번달에 등록된 예산이 없습니다."),
 
     // 고정비 관련 에러
-    FIXED_CONSUMPTION_NOT_FOUND(HttpStatus.BAD_REQUEST, "FIXED_CONSUMPTION4001", "아이디와 일치하는 고정비가 없습니다.");
+    FIXED_CONSUMPTION_NOT_FOUND(HttpStatus.BAD_REQUEST, "FIXED_CONSUMPTION4001", "아이디와 일치하는 고정비가 없습니다."),
 
     // 소비 기록 에러
-
+    CONSUMPTION_RECORD_NOT_FOUND(HttpStatus.BAD_REQUEST, "CONSUMPTION_RECORD4001", "아이디와 일치하는 소비 기록이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

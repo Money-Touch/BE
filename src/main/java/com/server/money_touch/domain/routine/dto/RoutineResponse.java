@@ -60,6 +60,9 @@ public class RoutineResponse {
         @Schema(description = "닉네임", example = "라인")
         String nickname;
 
+        @Schema(description = "소비 루틴 이미지 url", example = "https://")
+        String routineImgUrl;
+
         @Schema(description = "프로필 이미지 url", example = "https://")
         String profileImgUrl;
 

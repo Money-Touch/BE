@@ -63,6 +63,9 @@ public class RoutineController {
     @GetMapping("/users")
     public ApiResponse<RoutineResponse.MyRoutineListDTO> getMyRoutines() {
         RoutineResponse.MyRoutineListDTO response = RoutineResponse.MyRoutineListDTO.builder().build();
+
         return ApiResponse.onSuccess(response);
     }
+
+    // 소비 루틴 이미지 등록?
 }
