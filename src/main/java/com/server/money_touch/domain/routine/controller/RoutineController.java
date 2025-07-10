@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/routines")
+@RequestMapping("/api/house-holds/routines")
 public class RoutineController {
 
     // 소비 루틴 등록
@@ -33,6 +33,7 @@ public class RoutineController {
     @ApiSuccessCodeExample(resultClass = RoutineResponse.RoutineCreateResultDTO.class)
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_ALREADY_EXIST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_EXCEEDED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_TOO_LOW"),
@@ -63,6 +64,9 @@ public class RoutineController {
     @GetMapping("/users")
     public ApiResponse<RoutineResponse.MyRoutineListDTO> getMyRoutines() {
         RoutineResponse.MyRoutineListDTO response = RoutineResponse.MyRoutineListDTO.builder().build();
+
         return ApiResponse.onSuccess(response);
     }
+
+    // 소비 루틴 이미지 등록?
 }

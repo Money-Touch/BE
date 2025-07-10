@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/budgets")
+@RequestMapping("/api/house-holds/budgets")
 public class BudgetController {
 
     // 가계부 한 달 예산 등록
@@ -51,7 +51,7 @@ public class BudgetController {
             description = "아이디와 일치하는 한 달 예산 수정 API 입니다. " +
                     "총 예산과 카테고리별(기본, 사용자 정의, 소비 루틴) 예산 목록을 RequestBody로 입력받아 한 달 예산을 수정합니다."
     )
-    @ApiSuccessCodeExample(resultClass = BudgetResponse.BudgetCreateResultDTO.class)
+    @ApiSuccessCodeExample(resultClass = ApiResponse.class)
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_FOUND"),
@@ -64,10 +64,9 @@ public class BudgetController {
             @Parameter(name = "budgetId", description = "수정하려는 예산 아이디", example = "1", required = true),
     })
     @PatchMapping("/{budgetId}")
-    public ApiResponse<BudgetResponse.BudgetCreateResultDTO> patchBudget(@Valid @RequestBody BudgetRequest.BudgetCreateDTO request,
+    public ApiResponse<?> patchBudget(@Valid @RequestBody BudgetRequest.BudgetCreateDTO request,
                                                                          @PathVariable Long budgetId) {
-        BudgetResponse.BudgetCreateResultDTO response = BudgetResponse.BudgetCreateResultDTO.builder().build();
-        return ApiResponse.onSuccess(response);
+        return ApiResponse.onSuccess(null);
     }
 
 

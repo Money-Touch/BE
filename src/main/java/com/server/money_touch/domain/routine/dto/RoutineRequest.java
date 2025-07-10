@@ -32,6 +32,9 @@ public class RoutineRequest {
         @Size(max = 1000, message = "소비 루틴 소개는 1000자 이하로 입력해주세요.")
         private String routineDescription;
 
+        @Schema(description = "소비 루틴 이미지 url", example = "https://")
+        String routineImgUrl;
+
         @Schema(description = "소비 루틴 해시태그 목록", example = "[\"#식비절약\", \"#생활비\"]")
         private List<String> hashtags;
 
