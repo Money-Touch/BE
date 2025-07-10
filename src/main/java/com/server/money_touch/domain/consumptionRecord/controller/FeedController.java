@@ -5,6 +5,7 @@ import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExamples;
+import com.server.money_touch.global.validation.annotation.ApiSuccessCodeExample;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -60,6 +61,24 @@ public class FeedController {
     @GetMapping("/{consumptionRecordId}")
     public ApiResponse<FeedResponse.FeedDetailResultDTO> getFeedDetail(@PathVariable Long consumptionRecordId) {
         FeedResponse.FeedDetailResultDTO response = FeedResponse.FeedDetailResultDTO.builder().build();
+        return ApiResponse.onSuccess(response);
+    }
+
+
+    // 마이페이지 - 내 피드 모아보기
+    @Operation(
+            summary = "내 피드 조회 API",
+            description = "마이페이지에 있는 My 피드를 눌러 현재 사용자의 소비 기록 피드를 조회하는 API입니다."
+    )
+//    @ApiSuccessCodeExample(resultClass = FeedResponse.FeedListResultDTO.class)
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
+    })
+    @GetMapping("/my")
+    public ApiResponse<FeedResponse.FeedListResultDTO> getMyFeed(){
+        FeedResponse.FeedListResultDTO response = FeedResponse.FeedListResultDTO.builder().build();
         return ApiResponse.onSuccess(response);
     }
 }

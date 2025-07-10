@@ -89,7 +89,7 @@ public class FeedResponse {
         @Schema(description = "사용자 ID", example = "1")
         private Long userId;
 
-        @Schema(description = "사용자 닉네임", example = "머니터치유저")
+        @Schema(description = "사용자 닉네임", example = "유저1")
         private String nickname;
 
         @Schema(description = "프로필 이미지 URL", example = "https://example.com/profile.jpg")
