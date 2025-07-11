@@ -21,6 +21,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,6 +37,8 @@ import java.util.List;
 @Slf4j
 @Configuration
 public class SwaggerConfig {
+    @Value("${swagger.server-url}")
+    private String swaggerServerUrl;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -56,7 +59,7 @@ public class SwaggerConfig {
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
-                .addServersItem(new Server().url("/"))
+                .addServersItem(new Server().url(swaggerServerUrl))
                 .info(info)
                 .addSecurityItem(securityRequirement)
                 .components(components);

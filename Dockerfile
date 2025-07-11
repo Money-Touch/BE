@@ -1,5 +1,5 @@
-# 기본 이미지 설정
-FROM openjdk:17-jdk-slim
+# Java 21용 OpenJDK 이미지 사용
+FROM eclipse-temurin:21-jdk
 
 # JAR_FILE 경로에 해당하는 파일을 Docker 이미지 내부로 복사
 COPY build/libs/money_touch-1.0.0.jar money_touch-backend-dev.jar
