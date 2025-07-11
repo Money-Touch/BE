@@ -1,0 +1,32 @@
+version: '3.9'
+services:
+  backend:
+    container_name: spring-app
+    image: ${DOCKER_USERNAME}/${DOCKER_REPO}:latest
+    env_file:
+      - .env  # 환경변수를 .env 파일에서 읽어옴
+    ports:
+      - "8080:8080"  # 호스트 8080 -> 컨테이너 8080
+    networks:
+      - app-network
+
+  nginx:
+    container_name: nginx-container
+    image: nginx:latest
+    ports:
+      - "80:80"   # HTTP 요청 처리
+      - "443:443" # HTTPS 요청 처리
+    networks:
+      - app-network
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro  # nginx.conf 파일
+    depends_on:
+      - backend
+
+networks:
+  app-network:
+    driver: bridge
+
+# Docker 네트워크에 연결되지 않았다면 추가
+# sudo docker network connect app-network nginx-container
+# sudo docker network connect app-network spring-app
