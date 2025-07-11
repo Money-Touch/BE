@@ -1,12 +1,11 @@
 package com.server.money_touch.domain.routine.dto;
 
+import com.server.money_touch.domain.budget.enums.CategoryType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -58,5 +57,39 @@ public class RoutineRequest {
         @Schema(description = "카테고리별 예산 금액", example = "100000")
         @NotNull(message = "카테고리 금액은 필수입니다.")
         private Integer amount;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "소비 루틴 예산 반영 요청 DTO")
+    public static class ApplyRoutineBudgetDTO {
+
+        @Schema(description = "수정된 전체 예산", example = "500000")
+        private Integer budgetTotal;
+
+        @Schema(description = "반영할 카테고리 예산 목록 (기존+소비루틴 모두 합침)")
+        @NotNull
+        @Valid
+        private List<RoutineRequest.ApplyCategoryBudgetDTO> categoryBudgets;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "카테고리별 예산 정보")
+    public static class ApplyCategoryBudgetDTO {
+
+        @Schema(description = "카테고리명", example = "배달/외식")
+        private String categoryName;
+
+        @Schema(description = "카테고리 금액", example = "100000")
+        private Integer amount;
+
+        @Schema(description = "카테고리 타입", example = "DEFAULT / CUSTOM / ROUTINE_CATEGORY")
+        @NotNull
+        private CategoryType categoryType;
     }
 }

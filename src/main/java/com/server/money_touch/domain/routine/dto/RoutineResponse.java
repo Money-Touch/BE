@@ -1,5 +1,6 @@
 package com.server.money_touch.domain.routine.dto;
 
+import com.server.money_touch.domain.budget.enums.CategoryType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -72,7 +73,9 @@ public class RoutineResponse {
     }
 
     @Getter
+    @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     @Schema(description = "전체 소비 루틴 리스트")
     public static class RoutineListDTO {
 
@@ -176,5 +179,51 @@ public class RoutineResponse {
         ]
         """)
         private List<RoutineResponse.CategoryBudgetDetailDTO> categoryBudgetList;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Schema(description = "소비 루틴 예산 반영 전 수정/추가 페이지 응답")
+    public static class ApplyRoutineInfoDTO {
+
+        @Schema(description = "총 예산", example = "500000")
+        private Integer totalBudget;
+
+        @Schema(description = "기존 카테고리별 예산 목록")
+        private List<ApplyCategoryBudgetDTO> categoryBudgets;
+
+        @Schema(description = "새로운 소비 루틴 카테고리별 예산 목록")
+        private List<ApplyCategoryBudgetDTO> routineCategoryBudgets;
+
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Schema(description = "카테고리 예산 정보 DTO")
+    public static class ApplyCategoryBudgetDTO {
+
+        @Schema(description = "카테고리명", example = "배달/외식")
+        private String categoryName;
+
+        @Schema(description = "금액", example = "100000")
+        private Integer amount;
+
+        @Schema(description = "카테고리 타입", example = "DEFAULT / CUSTOM / ROUTINE_CATEGORY")
+        private CategoryType categoryType;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    @Schema(description = "소비 루틴 예산 반영 성공 응답")
+    public static class ApplyRoutineSuccessDTO {
+        @Schema(description = "응답 메시지", example = "예산에 성공적으로 반영되었습니다.")
+        private String message;
     }
 }

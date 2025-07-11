@@ -140,4 +140,54 @@ public class RoutineController {
         return ApiResponse.onSuccess(response);
     }
 
+    @Operation(
+            summary = "소비 루틴 예산 반영 전 수정/추가",
+            description = "내 예산에 반영-> 네 를 클릭하면 보여주는 api 입니다."+
+                    "사용자가 갖고 있는 기존 카테고리는 '카테고리별 예산', 새로운 카테고리는 '소비 루틴 카테고리' 보여줍니다."
+    )
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
+    })
+    @Parameters({
+            @Parameter(name = "routineId", description = "조회하려는 소비 루틴 아이디", example = "1", required = true),
+    })
+    @GetMapping("/list/{routineId}/apply-info")
+    public ApiResponse<RoutineResponse.ApplyRoutineInfoDTO> getRoutineApplyInfo(@PathVariable Long routineId){
+
+        RoutineResponse.ApplyRoutineInfoDTO response = RoutineResponse.ApplyRoutineInfoDTO.builder().build();
+        return ApiResponse.onSuccess(response);
+
+    }
+
+    @Operation(
+            summary = "소비 루틴 예산 반영",
+            description = "실제 예산에 반영. 새로운 카테고리는 ROUTINE_CATEGORY로 추가"
+    )
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_EXCEEDED"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_TOO_LOW"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
+    })
+    @Parameters({
+            @Parameter(name = "routineId", description = "소비 루틴 ID", required = true, example = "1")
+    })
+    @PutMapping("/list/{routineId}/apply")
+    public ApiResponse<RoutineResponse.ApplyRoutineSuccessDTO> applyRoutineToBudget(
+            @PathVariable Long routineId,
+            @Valid @RequestBody RoutineRequest.ApplyRoutineBudgetDTO request
+    ){
+
+        RoutineResponse.ApplyRoutineSuccessDTO response = RoutineResponse.ApplyRoutineSuccessDTO.builder()
+                .message("예산에 성공적으로 반영되었습니다.")
+                .build();
+
+        return ApiResponse.onSuccess(response);
+    }
+
 }
