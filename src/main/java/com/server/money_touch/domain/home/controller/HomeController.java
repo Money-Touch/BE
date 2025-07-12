@@ -25,7 +25,7 @@ import java.util.List;
 public class HomeController {
 
     @Operation(
-            summary = "소비 통계 조회",
+            summary = "소비 통계 조회 API",
             description = "이번 달 상위 5개 소비 카테고리 + 기타 여부 + 최다 소비 항목 반환. " +
                     "Try it out -> Execute 로 리스트 확인 가능합니다. " +
                     "임시 더미데이터 입력한 상태")
@@ -59,7 +59,7 @@ public class HomeController {
     }
 
     @Operation(
-            summary = "기타 카테고리 통계 조회",
+            summary = "기타 카테고리 통계 조회 API",
             description = "'그 외'를 클릭했을 때 상위 5개를 제외한 카테고리들의 소비 퍼센트 반환. " +
                     "Try it out -> Execute 로 리스트 확인 가능합니다. " +
                     "임시 더미데이터 입력한 상태")
@@ -86,7 +86,7 @@ public class HomeController {
     }
 
     @Operation(
-            summary = "소비왕 랭킹 조회",
+            summary = "소비왕 랭킹 조회 API",
             description = "이번 주 기준 현명해요 수가 가장 많은 유저 10명 + 내 순위를 반환합니다."+
                     "Try it out -> Execute 로 리스트 확인 가능합니다. " +
                     "임시 더미데이터 입력한 상태")
@@ -120,7 +120,7 @@ public class HomeController {
     }
 
     @Operation(
-            summary = "소비 루틴 목록 5개 조회",
+            summary = "소비 루틴 목록 5개 조회 API",
             description = "사용자들이 등록한 소비 루틴들을 조회순 5개 보여줍니다.당일 등록된 루틴은 NEW 표시가 추가됩니다."+
             "Try it out -> Execute 로 리스트 확인 가능합니다. " +
             "임시 더미데이터 입력한 상태")

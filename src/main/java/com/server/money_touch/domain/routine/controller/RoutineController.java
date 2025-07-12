@@ -69,7 +69,7 @@ public class RoutineController {
     }
 
     @Operation(
-            summary = "전체 소비 루틴 리스트 조회",
+            summary = "전체 소비 루틴 리스트 조회 API",
             description = "최신순으로 전체 소비 루틴을 조회합니다. 임시 더미데이터 입력한 상태입니다. "
                     + "Try it out -> Execute 로 리스트 확인 가능합니다."
                     + "당일 등록은 NEW 표시를 위해 true로 전달합니다.")
@@ -123,7 +123,7 @@ public class RoutineController {
 
 
     @Operation(
-            summary = "타인의 소비루틴 상세 조회",
+            summary = "타인의 소비루틴 상세 조회 API",
             description = "전체 소비 루틴 리스트에서 소비 루틴 상세 정보를 조회하는 API입니다.")
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
@@ -141,7 +141,7 @@ public class RoutineController {
     }
 
     @Operation(
-            summary = "소비 루틴 예산 반영 전 수정/추가",
+            summary = "소비 루틴 예산 반영 전 수정/추가 API",
             description = "내 예산에 반영-> 네 를 클릭하면 보여주는 api 입니다."+
                     "사용자가 갖고 있는 기존 카테고리는 '카테고리별 예산', 새로운 카테고리는 '소비 루틴 카테고리' 보여줍니다."
     )
@@ -163,7 +163,7 @@ public class RoutineController {
     }
 
     @Operation(
-            summary = "소비 루틴 예산 반영",
+            summary = "소비 루틴 예산 반영 API",
             description = "실제 예산에 반영. 새로운 카테고리는 ROUTINE_CATEGORY로 추가"
     )
     @ApiErrorCodeExamples({
@@ -186,6 +186,40 @@ public class RoutineController {
         RoutineResponse.ApplyRoutineSuccessDTO response = RoutineResponse.ApplyRoutineSuccessDTO.builder()
                 .message("예산에 성공적으로 반영되었습니다.")
                 .build();
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(
+            summary = "소비 루틴 검색 API",
+            description = "소비 루틴 제목으로 검색합니다."
+    )
+    @ApiSuccessCodeExample(resultClass = RoutineResponse.RoutineListDTO.class)
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
+    })
+    @Parameters({
+            @Parameter(name = "keyword", description = "검색어 (루틴 이름)", example = "50만원", required = false)
+    })
+    @GetMapping("/list/search")
+    public ApiResponse<List<RoutineResponse.RoutineListDTO>> searchRoutineList(
+            @RequestParam(required = false) String keyword) {
+
+        // TODO: 실제 데이터로 교체 예정. 임시 더미데이터
+        List<RoutineResponse.RoutineListDTO> response = List.of(
+                RoutineResponse.RoutineListDTO.builder()
+                        .routineId(1L)
+                        .isNew(true)
+                        .createDate("2025-07-11")
+                        .routineName("50만원으로 한 달 살기 루틴")
+                        .nickname("라인")
+                        .routineImgUrl("https://example.com/image.png")
+                        .profileImgUrl("https://example.com/profile.png")
+                        .hashtags(List.of("#절약", "#한달살기"))
+                        .build()
+        );
 
         return ApiResponse.onSuccess(response);
     }
