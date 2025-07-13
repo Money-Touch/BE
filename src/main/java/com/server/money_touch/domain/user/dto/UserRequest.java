@@ -76,4 +76,7 @@ public class UserRequest{
         @NotNull
         private Boolean isAgree;
     }
+
+
+    public static class
 }
