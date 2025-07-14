@@ -8,6 +8,7 @@ import com.server.money_touch.global.apiPayload.code.status.SuccessStatus;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExamples;
 import com.server.money_touch.global.validation.annotation.ApiSuccessCodeExample;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -18,12 +19,26 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+
+
+@Slf4j
 @Configuration
 public class SwaggerConfig {
+    @Value("${swagger.server-url}")
+    private String swaggerServerUrl;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -44,7 +59,7 @@ public class SwaggerConfig {
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
-                .addServersItem(new Server().url("/"))
+                .addServersItem(new Server().url(swaggerServerUrl))
                 .info(info)
                 .addSecurityItem(securityRequirement)
                 .components(components);
@@ -53,7 +68,6 @@ public class SwaggerConfig {
     @Bean
     public OperationCustomizer customize() {
         return (operation, handlerMethod) -> {
-            // 여러 에러 예시 처리
             ApiErrorCodeExamples errorAnnotations = handlerMethod.getMethodAnnotation(ApiErrorCodeExamples.class);
             if (errorAnnotations != null) {
                 for (ApiErrorCodeExample e : errorAnnotations.value()) {
@@ -66,7 +80,6 @@ public class SwaggerConfig {
                 }
             }
 
-            // 성공 예시 처리
             ApiSuccessCodeExample successAnnotation = handlerMethod.getMethodAnnotation(ApiSuccessCodeExample.class);
             if (successAnnotation != null) {
                 generateSuccessCodeResponseExample(operation, successAnnotation.resultClass());
@@ -110,37 +123,36 @@ public class SwaggerConfig {
     }
 
     private void generateSuccessCodeResponseExample(Operation operation, Class<?> resultClass) {
-        ReasonDTO reason = SuccessStatus._OK.getReasonHttpStatus(); // 공통 메시지 사용
+        ReasonDTO reason = SuccessStatus._OK.getReasonHttpStatus();
         String httpStatusCode = String.valueOf(reason.getHttpStatus().value());
 
         String resultJson;
         try {
-            Object dtoInstance = resultClass.getDeclaredConstructor().newInstance();
+            Object dtoInstance = generateDtoFromSchemaExample(resultClass); // ← 수정된 부분
             String dtoJson = objectMapper.writeValueAsString(dtoInstance);
 
             resultJson = String.format("""
-        {
-          "isSuccess": true,
-          "code": "%s",
-          "message": "%s",
-          "result": %s
-        }
-        """, reason.getCode(), reason.getMessage(), dtoJson);
+            {
+              "isSuccess": true,
+              "code": "%s",
+              "message": "%s",
+              "result": %s
+            }
+            """, reason.getCode(), reason.getMessage(), dtoJson);
 
         } catch (Exception e) {
             resultJson = String.format("""
-        {
-          "isSuccess": true,
-          "code": "%s",
-          "message": "%s",
-          "result": {}
-        }
-        """, reason.getCode(), reason.getMessage());
+            {
+              "isSuccess": true,
+              "code": "%s",
+              "message": "%s",
+              "result": {}
+            }
+            """, reason.getCode(), reason.getMessage());
         }
 
         Content content = new Content();
         MediaType mediaType = new MediaType();
-        mediaType.addExamples("Success", new Example().value(resultJson));
         content.addMediaType("application/json", mediaType);
 
         io.swagger.v3.oas.models.responses.ApiResponse apiResponse =
@@ -149,7 +161,58 @@ public class SwaggerConfig {
                         .content(content);
 
         operation.getResponses().put(httpStatusCode, apiResponse);
-
         mediaType.addExamples("COMMON200", new Example().value(resultJson));
+    }
+
+    private Object generateDtoFromSchemaExample(Class<?> dtoClass) throws Exception {
+        Object instance = dtoClass.getDeclaredConstructor().newInstance();
+
+        for (Field field : dtoClass.getDeclaredFields()) {
+            field.setAccessible(true);
+
+            Schema schema = field.getAnnotation(Schema.class);
+            if (schema == null) continue;
+
+            String exampleValue = schema.example();
+            if (exampleValue.isEmpty()) continue;
+
+            Class<?> fieldType = field.getType();
+
+            if (fieldType == String.class) {
+                field.set(instance, exampleValue);
+
+            } else if (fieldType == Integer.class || fieldType == int.class) {
+                field.set(instance, Integer.parseInt(exampleValue));
+
+            } else if (fieldType == Long.class || fieldType == long.class) {
+                field.set(instance, Long.parseLong(exampleValue));
+
+            } else if (fieldType == LocalDateTime.class) {
+                try {
+                    // Swagger에 입력된 example 문자열을 LocalDateTime으로 변환
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                    LocalDateTime parsed = LocalDateTime.parse(exampleValue.trim(), formatter);
+                    field.set(instance, parsed);
+                    log.info(parsed.toString());
+                } catch (DateTimeParseException e) {
+                    log.warn("LocalDateTime 파싱 실패: {}, 기본값 null 처리", exampleValue);
+                    field.set(instance, null);
+                }
+            } else if (List.class.isAssignableFrom(fieldType)) {
+                // 리스트 타입 처리
+                Type genericType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+                if (genericType instanceof Class<?> genericClass) {
+                    Object childDto = generateDtoFromSchemaExample(genericClass);
+                    field.set(instance, List.of(childDto));
+                }
+
+            } else {
+                // nested DTO 객체 처리
+                Object nestedObject = generateDtoFromSchemaExample(fieldType);
+                field.set(instance, nestedObject);
+            }
+        }
+
+        return instance;
     }
 }

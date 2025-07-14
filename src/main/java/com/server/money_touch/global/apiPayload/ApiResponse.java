@@ -5,21 +5,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.server.money_touch.global.apiPayload.code.BaseCode;
 import com.server.money_touch.global.apiPayload.code.status.SuccessStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
 @JsonPropertyOrder({"isSuccess", "code", "message", "result"})
+@Schema(description = "공통 응답 포맷")
 public class ApiResponse<T> {
 
     @JsonProperty("isSuccess")
-    private final Boolean isSuccess; // 성공 여부
-    private final String code; // 세부 코드
-    private final String message; // 반환 메시지
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private T result; // 데이터
+    @Schema(description = "성공 여부", example = "true")
+    private final Boolean isSuccess;
 
+    @Schema(description = "상태 코드", example = "COMMON200")
+    private final String code;
+
+    @Schema(description = "상태 메시지", example = "성공입니다.")
+    private final String message;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(description = "결과 데이터")
+    private T result;
 
     // 성공한 경우 응답 생성
     public static <T> ApiResponse<T> onSuccess(T result){
