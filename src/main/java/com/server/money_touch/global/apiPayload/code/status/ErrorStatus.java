@@ -45,6 +45,7 @@ public enum ErrorStatus implements BaseErrorCode {
     // 소비 루틴 관련 에러
     ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST, "ROUTINE4001", "아이디와 일치하는 소비 루틴이 없습니다."),
     ROUTINE_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "ROUTINE4002", "한 달 소비 루틴 등록 횟수를 초과하였습니다."),
+    ERROR_UPLOAD_ROUTINE_IMG(HttpStatus.INTERNAL_SERVER_ERROR, "ROUTINE5001", "소비 루틴 이미지 등록에 실패하였습니다."),
 
     // 리액션 관련 에러
     REACTION_NOT_FOUND(HttpStatus.NOT_FOUND, "REACTION4001", "반응을 찾을 수 없습니다.");
