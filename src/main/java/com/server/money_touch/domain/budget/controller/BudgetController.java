@@ -3,6 +3,7 @@ package com.server.money_touch.domain.budget.controller;
 import com.server.money_touch.domain.budget.dto.BudgetRequest;
 import com.server.money_touch.domain.budget.dto.BudgetResponse;
 import com.server.money_touch.domain.budget.service.budget.BudgetCommandService;
+import com.server.money_touch.domain.budget.service.budget.BudgetQueryService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class BudgetController {
 
     private final BudgetCommandService budgetCommandService;
+    private final BudgetQueryService budgetQueryService;
 
     // 가계부 한 달 예산 등록
     @Operation(
@@ -92,7 +94,8 @@ public class BudgetController {
     })
     @GetMapping("/{budgetId}")
     public ApiResponse<BudgetResponse.BudgetDetailDTO> getBudget(@PathVariable Long budgetId) {
-        BudgetResponse.BudgetDetailDTO response = BudgetResponse.BudgetDetailDTO.builder().build();
+        // 로그인 전까지 userId 1로 임시 세팅
+        BudgetResponse.BudgetDetailDTO response = budgetQueryService.findBudgetById(1L, budgetId);
         return ApiResponse.onSuccess(response);
     }
 

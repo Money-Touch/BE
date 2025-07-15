@@ -5,6 +5,8 @@ import com.server.money_touch.domain.budget.dto.BudgetResponse;
 import com.server.money_touch.domain.budget.entity.Budget;
 import com.server.money_touch.domain.user.entity.User;
 
+import java.util.List;
+
 public class BudgetConverter {
 
     // BudgetCreateDTO → Budget Entity 변환
@@ -19,6 +21,19 @@ public class BudgetConverter {
     public static BudgetResponse.BudgetCreateResultDTO toBudgetCreateResultDto(Long budgetId) {
         return BudgetResponse.BudgetCreateResultDTO.builder()
                 .budgetId(budgetId)
+                .build();
+    }
+
+    // 내 예산 조회 DTO 반환
+    public static BudgetResponse.BudgetDetailDTO toBudgetDetailDTO(Budget budget,
+                                                                   List<BudgetResponse.DefaultCategoryBudgetResponse> defaultCategories,
+                                                                   List<BudgetResponse.CustomCategoryBudgetResponse> customCategories,
+                                                                   List<BudgetResponse.RoutineCategoryBudgetResponse> routineCategories) {
+        return BudgetResponse.BudgetDetailDTO.builder()
+                .totalBudget(budget.getBudgetTotal())
+                .defaultCategoryBudgets(defaultCategories)
+                .customCategoryBudgets(customCategories)
+                .routineCategoryBudgets(routineCategories)
                 .build();
     }
 }

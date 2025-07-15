@@ -62,7 +62,7 @@ public class BudgetResponse {
         @Schema(description = "기본 예산 카테고리명", example = "배달/외식")
         private String categoryName;
 
-        @Schema(description = "카테고리별 예산 금액", example = "100000")
+        @Schema(description = "카테고리별 예산 금액", example = "200000")
         private Integer amount;
     }
 
@@ -88,6 +88,7 @@ public class BudgetResponse {
         @Schema(description = "소비 루틴 카테고리명", example = "술/유흥")
         private String categoryName;
 
+        @Schema(description = "카테고리별 예산 금액", example = "150000")
         private Integer amount;
     }
 }

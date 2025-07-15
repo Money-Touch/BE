@@ -106,6 +106,7 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
      * 기본 카테고리는 사전에 등록된 것을 조회하여 연결하며,
      * 금액이 비어 있을 경우 0원으로 저장합니다.
      */
+    @Transactional
     private void registerDefaultCategoryBudgets(List<BudgetRequest.DefaultCategoryBudget> defaultCategoryBudgets, User user, Budget budget) {
         List<ConsumptionCategory> defaultCategories = consumptionCategoryRepository
                 .findAllByUserAndBudgetCategoryType(user, CategoryType.DEFAULT);
@@ -127,6 +128,7 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
     /**
      * 사용자 정의 카테고리 및 카테고리 예산을 저장합니다.
      */
+    @Transactional
     private void registerCustomCategoryBudgets(List<BudgetRequest.CustomCategoryBudget> customCategoryBudgets, User user, Budget budget) {
         if (customCategoryBudgets == null || customCategoryBudgets.isEmpty()) return;
 
