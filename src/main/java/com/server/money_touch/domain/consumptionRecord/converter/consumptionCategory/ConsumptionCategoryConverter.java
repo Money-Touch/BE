@@ -1,4 +1,4 @@
-package com.server.money_touch.domain.consumptionRecord.converter.consumption_category;
+package com.server.money_touch.domain.consumptionRecord.converter.consumptionCategory;
 
 import com.server.money_touch.domain.budget.enums.CategoryType;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;

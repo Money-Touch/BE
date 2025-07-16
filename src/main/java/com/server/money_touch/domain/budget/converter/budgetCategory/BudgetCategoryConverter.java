@@ -1,4 +1,4 @@
-package com.server.money_touch.domain.budget.converter.budget_category;
+package com.server.money_touch.domain.budget.converter.budgetCategory;
 
 import com.server.money_touch.domain.budget.entity.Budget;
 import com.server.money_touch.domain.budget.entity.BudgetCategory;

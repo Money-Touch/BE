@@ -1,4 +1,4 @@
-package com.server.money_touch.domain.consumptionRecord.repository.total_consumption;
+package com.server.money_touch.domain.consumptionRecord.repository.totalConsumption;
 
 import com.server.money_touch.domain.consumptionRecord.entity.TotalConsumption;
 import com.server.money_touch.domain.user.entity.User;

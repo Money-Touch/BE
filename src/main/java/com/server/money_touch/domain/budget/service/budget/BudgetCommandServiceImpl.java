@@ -1,16 +1,16 @@
 package com.server.money_touch.domain.budget.service.budget;
 
 import com.server.money_touch.domain.budget.converter.budget.BudgetConverter;
-import com.server.money_touch.domain.budget.converter.budget_category.BudgetCategoryConverter;
-import com.server.money_touch.domain.consumptionRecord.converter.consumption_category.ConsumptionCategoryConverter;
+import com.server.money_touch.domain.budget.converter.budgetCategory.BudgetCategoryConverter;
+import com.server.money_touch.domain.consumptionRecord.converter.consumptionCategory.ConsumptionCategoryConverter;
 import com.server.money_touch.domain.budget.dto.BudgetRequest;
 import com.server.money_touch.domain.budget.dto.BudgetResponse;
 import com.server.money_touch.domain.budget.entity.Budget;
 import com.server.money_touch.domain.budget.entity.BudgetCategory;
 import com.server.money_touch.domain.budget.enums.CategoryType;
 import com.server.money_touch.domain.budget.repository.budget.BudgetRepository;
-import com.server.money_touch.domain.budget.repository.budget_category.BudgetCategoryRepository;
-import com.server.money_touch.domain.consumptionRecord.repository.consumption_category.ConsumptionCategoryRepository;
+import com.server.money_touch.domain.budget.repository.budgetCategory.BudgetCategoryRepository;
+import com.server.money_touch.domain.consumptionRecord.repository.consumptionCategory.ConsumptionCategoryRepository;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.respotiroy.user.UserRepository;

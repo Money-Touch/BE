@@ -1,4 +1,4 @@
-package com.server.money_touch.domain.budget.repository.budget_category;
+package com.server.money_touch.domain.budget.repository.budgetCategory;
 
 import com.server.money_touch.domain.budget.entity.BudgetCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
