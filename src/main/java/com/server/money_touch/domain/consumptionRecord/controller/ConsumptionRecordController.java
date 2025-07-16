@@ -1,7 +1,5 @@
 package com.server.money_touch.domain.consumptionRecord.controller;
 
-import com.server.money_touch.domain.budget.dto.BudgetRequest;
-import com.server.money_touch.domain.budget.dto.BudgetResponse;
 import com.server.money_touch.domain.consumptionRecord.dto.ConsumptionRecordRequest;
 import com.server.money_touch.domain.consumptionRecord.dto.ConsumptionRecordResponse;
 import com.server.money_touch.global.apiPayload.ApiResponse;
@@ -16,12 +14,9 @@ import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "소비 기록 등록 페이지", description = "소비 기록 등록에 관한 API")
+@Tag(name = "소비 기록 페이지", description = "소비 기록에 관한 API")
 @Slf4j
 @Validated
 @RequiredArgsConstructor
