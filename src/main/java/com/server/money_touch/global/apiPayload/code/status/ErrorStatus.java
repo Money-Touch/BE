@@ -26,6 +26,9 @@ public enum ErrorStatus implements BaseErrorCode {
     BUDGET_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "BUDGET4004", "한 달 예산 등록 횟수를 초과하였습니다."),
     BUDGET_NOT_EXIST(HttpStatus.NOT_FOUND, "BUDGET_4041", "이번달에 등록된 예산이 없습니다."),
 
+    // 소비 MBTI 관련 에러
+    MBTI_NOT_FOUND(HttpStatus.BAD_REQUEST, "MBTI4001", "해당하는 소비 MBTI가 없습니다."),
+
     // 소비 카테고리 관련 에러
     CONSUMPTION_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CONSUMPTION_CATEGORY4001", "해당 예산 카테고리 타입을 찾을 수 없습니다."),
 
