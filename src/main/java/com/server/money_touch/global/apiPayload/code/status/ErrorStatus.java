@@ -25,7 +25,7 @@ public enum ErrorStatus implements BaseErrorCode {
     TOTAL_BUDGET_TOO_LOW(HttpStatus.BAD_REQUEST, "BUDGET4003", "카테고리 예산 총합이 전체 예산보다 작습니다."),
 
     // 소비 MBTI 관련 에러
-    MBTI_NOT_FOUND(HttpStatus.BAD_REQUEST, "MBTI4001", "해당하는 소비 MBTI가 없습니다.");
+    MBTI_NOT_FOUND(HttpStatus.BAD_REQUEST, "MBTI4001", "해당하는 소비 MBTI가 없습니다."),
 
 
     // 소비 기록 에러

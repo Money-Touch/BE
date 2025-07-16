@@ -2,7 +2,6 @@ package com.server.money_touch.domain.user.dto;
 
 import com.server.money_touch.domain.user.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
