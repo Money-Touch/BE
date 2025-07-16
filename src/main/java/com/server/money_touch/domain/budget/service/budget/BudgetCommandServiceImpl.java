@@ -107,21 +107,47 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
      * 금액이 비어 있을 경우 0원으로 저장합니다.
      */
     @Transactional
-    private void registerDefaultCategoryBudgets(List<BudgetRequest.DefaultCategoryBudget> defaultCategoryBudgets, User user, Budget budget) {
-        List<ConsumptionCategory> defaultCategories = consumptionCategoryRepository
+    @Override
+    public void registerDefaultCategoryBudgets(List<BudgetRequest.DefaultCategoryBudget> defaultCategoryBudgets, User user, Budget budget) {
+        // 1. 사전 정의된 기본 카테고리 이름 목록
+        List<String> defaultCategoryNames = List.of("배달/외식", "패션/쇼핑", "교통", "카페", "기타");
+
+        // 2. 사용자에 대해 등록된 기본 카테고리 조회 (N+1 방지 위해 한 번에 조회)
+        List<ConsumptionCategory> existingDefaultCategories = consumptionCategoryRepository
                 .findAllByUserAndBudgetCategoryType(user, CategoryType.DEFAULT);
 
+        // 3. 기존 카테고리를 맵으로 구성
+        Map<String, ConsumptionCategory> existingCategoryMap = existingDefaultCategories.stream()
+                .collect(Collectors.toMap(ConsumptionCategory::getBudgetCategoryName, c -> c));
+
+        // 4. 아직 등록되지 않은 카테고리만 추출하여 엔티티 생성
+        List<ConsumptionCategory> toBeCreated = defaultCategoryNames.stream()
+                .filter(name -> !existingCategoryMap.containsKey(name))
+                .map(name -> ConsumptionCategoryConverter.toConsumptionCategory(user, name, CategoryType.DEFAULT))
+                .toList();
+
+        // 5. 새로운 카테고리를 일괄 저장 (N+1 방지)
+        if (!toBeCreated.isEmpty()) {
+            List<ConsumptionCategory> saved = consumptionCategoryRepository.saveAll(toBeCreated);
+            // 저장된 항목도 map에 추가
+            saved.forEach(c -> existingCategoryMap.put(c.getBudgetCategoryName(), c));
+        }
+
+        // 6. 입력된 예산 금액을 categoryName 기준으로 Map에 구성
         Map<String, Integer> inputBudgetMap = defaultCategoryBudgets == null ? Map.of() :
                 defaultCategoryBudgets.stream()
                         .collect(Collectors.toMap(BudgetRequest.DefaultCategoryBudget::getCategoryName, BudgetRequest.DefaultCategoryBudget::getAmount));
 
-        List<BudgetCategory> budgetCategories = defaultCategories.stream()
-                .map(category -> {
-                    int amount = inputBudgetMap.getOrDefault(category.getBudgetCategoryName(), 0);
+        // 7. 기본 카테고리 순서대로 BudgetCategory 생성
+        List<BudgetCategory> budgetCategories = defaultCategoryNames.stream()
+                .map(name -> {
+                    ConsumptionCategory category = existingCategoryMap.get(name);
+                    int amount = inputBudgetMap.getOrDefault(name, 0); // 입력 없으면 0원
                     return BudgetCategoryConverter.toBudgetCategory(budget, category, amount);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
+        // 8. 예산-카테고리 항목을 일괄 저장
         budgetCategoryRepository.saveAll(budgetCategories);
     }
 
@@ -129,7 +155,8 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
      * 사용자 정의 카테고리 및 카테고리 예산을 저장합니다.
      */
     @Transactional
-    private void registerCustomCategoryBudgets(List<BudgetRequest.CustomCategoryBudget> customCategoryBudgets, User user, Budget budget) {
+    @Override
+    public void registerCustomCategoryBudgets(List<BudgetRequest.CustomCategoryBudget> customCategoryBudgets, User user, Budget budget) {
         if (customCategoryBudgets == null || customCategoryBudgets.isEmpty()) return;
 
         // 기존 사용자 정의 카테고리 조회
