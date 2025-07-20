@@ -1,12 +1,15 @@
 package com.server.money_touch.domain.consumptionRecord.service;
 
 import com.server.money_touch.domain.consumptionRecord.converter.consumptionRecord.ConsumptionRecordConverter;
+import com.server.money_touch.domain.consumptionRecord.converter.totalConsumption.TotalConsumptionConverter;
 import com.server.money_touch.domain.consumptionRecord.dto.ConsumptionRecordResponse;
 import com.server.money_touch.domain.consumptionRecord.dto.HouseholdConsumptionRequest;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
+import com.server.money_touch.domain.consumptionRecord.entity.TotalConsumption;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionCategory.ConsumptionCategoryRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord.ConsumptionRecordRepository;
+import com.server.money_touch.domain.consumptionRecord.repository.totalConsumption.TotalConsumptionRepository;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.respotiroy.user.UserRepository;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
@@ -16,6 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Validated
@@ -27,27 +33,73 @@ public class ConsumptionRecordCommandServiceImpl implements ConsumptionRecordCom
     private final ConsumptionRecordRepository consumptionRecordRepository;
     private final ConsumptionCategoryRepository consumptionCategoryRepository;
     private final UserRepository userRepository;
+    private final TotalConsumptionRepository totalConsumptionRepository;
 
     // 일일 소비 기록 등록
     @Transactional
     @Override
-    public ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO createDailyConsumptionRecord(Long userId, HouseholdConsumptionRequest.DailyConsumptionCreateDTO request) {
-        // 사용자 조회
+    public ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO saveDailyConsumptionRecord(Long userId, HouseholdConsumptionRequest.DailyConsumptionCreateDTO request) {
+        // 1. 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
 
-        // 카테고리 이름으로 유저의 소비 카테고리 테이블 조회
+        // 2. 카테고리 이름으로 유저의 소비 카테고리 테이블 조회
         ConsumptionCategory consumptionCategory = consumptionCategoryRepository.findByUserAndBudgetCategoryName(user, request.getCategoryName())
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.CONSUMPTION_CATEGORY_NAME_NOT_FOUND));
 
-        // 소비 기록 엔티티 생성
+        // 3. 소비 기록 엔티티 생성
         ConsumptionRecord dailyConsumptionRecord = ConsumptionRecordConverter.toDailyConsumptionRecord(user, consumptionCategory, request);
-        dailyConsumptionRecord.setCreatedAt(request.getConsumeDate());
-        dailyConsumptionRecord.setUpdatedAt(request.getConsumeDate());
         consumptionRecordRepository.save(dailyConsumptionRecord);
+
+        // 4-1. 현재 연도와 월 기준으로 월 시작일과 종료일 계산
+        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
+
+        // 4-2. 해당 월의 총 소비 금액 조회, 데이터가 없다면 생성
+        TotalConsumption totalConsumption = totalConsumptionRepository
+                .findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
+                .orElseGet(() -> totalConsumptionRepository.save(TotalConsumptionConverter.toTotalConsumption(user)));
+
+        // 4-3. 소비 금액 추가
+        totalConsumption.setAddTotalConsumptionAmount(request.getAmount());
 
         Long consumptionRecordId = dailyConsumptionRecord.getId();
         log.info("일일 소비 기록 등록 완료, consumptionRecordId: {}", consumptionRecordId);
         return ConsumptionRecordConverter.toConsumptionRecordCreateResultDTO(consumptionRecordId);
     }
+
+    // 일일 소비 기록 수정
+    @Transactional
+    @Override
+    public void updateDailyConsumptionRecord(Long userId, Long consumptionRecordId, HouseholdConsumptionRequest.DailyConsumptionCreateDTO request) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 소비 기록 아이디로 유저의 소비 기록 테이블 조회
+        ConsumptionRecord consumptionRecord = consumptionRecordRepository.findById(consumptionRecordId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.CONSUMPTION_RECORD_NOT_FOUND));
+
+        // 3. 카테고리 이름으로 유저의 소비 카테고리 테이블 조회
+        ConsumptionCategory consumptionCategory = consumptionCategoryRepository.findByUserAndBudgetCategoryName(user, request.getCategoryName())
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.CONSUMPTION_CATEGORY_NAME_NOT_FOUND));
+
+        // 4-1. 현재 연도와 월 기준으로 월 시작일과 종료일 계산
+        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
+
+        // 4-2. 해당 월의 총 소비 금액 조회, 데이터가 없다면 생성
+        TotalConsumption totalConsumption = totalConsumptionRepository
+                .findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
+                .orElseGet(() -> totalConsumptionRepository.save(TotalConsumptionConverter.toTotalConsumption(user)));
+
+        // 4-3. 총 소비 금액 수정
+        totalConsumption.updateTotalConsumptionAmount(consumptionRecord.getAmount(), request.getAmount());
+
+        // 5. 일일 소비 기록 수정
+        consumptionRecord.updateDailyConsumptionRecord(consumptionCategory, request.getAmount(), request.getContent(),request.getMemo(), request.getConsumeDate());
+
+        log.info("일일 소비 기록 수정 완료, consumptionRecordId: {}", consumptionRecordId);
+    }
+
 }

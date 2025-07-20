@@ -45,7 +45,7 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
     // 예산 등롥 또는 수정
     @Transactional
     @Override
-    public BudgetResponse.BudgetCreateResultDTO registerOrUpdateBudgetWithCategories(Long userId, BudgetRequest.BudgetCreateDTO request) {
+    public BudgetResponse.BudgetCreateResultDTO saveOrUpdateBudgetWithCategories(Long userId, BudgetRequest.BudgetCreateDTO request) {
         // 1. 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
@@ -107,9 +107,9 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
             budget = BudgetConverter.toBudgetEntity(user, request);
             budgetRepository.save(budget);
 
-            registerCategoryBudgetsByType(request.getDefaultCategoryBudgets(), user, budget, CategoryType.DEFAULT);
-            registerCategoryBudgetsByType(request.getCustomCategoryBudgets(), user, budget, CategoryType.CUSTOM);
-            registerCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY);
+            saveCategoryBudgetsByType(request.getDefaultCategoryBudgets(), user, budget, CategoryType.DEFAULT);
+            saveCategoryBudgetsByType(request.getCustomCategoryBudgets(), user, budget, CategoryType.CUSTOM);
+            saveCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY);
 
             log.info("예산 등록 완료, budgetId: {}", budget.getId());
         }
@@ -128,9 +128,9 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
 
     // 기본, 커스텀, 소비루틴 카테고리 등록
     @Override
-    public void registerCategoryBudgetsByType(List<? extends Object> requestList,
-                                              User user, Budget budget,
-                                              CategoryType type) {
+    public void saveCategoryBudgetsByType(List<? extends Object> requestList,
+                                          User user, Budget budget,
+                                          CategoryType type) {
         List<BudgetCategory> existingList = budgetCategoryRepository.findAllWithCategoryByBudgetAndType(budget, type);
         Map<String, BudgetCategory> existingMap = existingList.stream()
                 .collect(Collectors.toMap(

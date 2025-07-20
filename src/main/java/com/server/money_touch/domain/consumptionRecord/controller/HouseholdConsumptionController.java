@@ -46,7 +46,7 @@ public class HouseholdConsumptionController {
             @Valid @RequestBody HouseholdConsumptionRequest.DailyConsumptionCreateDTO request){
 
         // 로그인 전까지 userId 1로 임시 세팅
-        ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO response = consumptionRecordCommandService.createDailyConsumptionRecord(1L, request);
+        ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO response = consumptionRecordCommandService.saveDailyConsumptionRecord(1L, request);
         return ApiResponse.onSuccess(response);
     }
 
@@ -58,6 +58,7 @@ public class HouseholdConsumptionController {
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_RECORD_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_CATEGORY_NAME_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
@@ -67,6 +68,9 @@ public class HouseholdConsumptionController {
     @PatchMapping("/daily/{consumptionRecordId}")
     public ApiResponse<String> patchDailyConsumptionRecord(@Valid @RequestBody HouseholdConsumptionRequest.DailyConsumptionCreateDTO request,
                                                       @PathVariable Long consumptionRecordId){
+
+        // 로그인 전까지 userId 1로 임시 세팅
+        consumptionRecordCommandService.updateDailyConsumptionRecord(1L, consumptionRecordId, request);
 
         return ApiResponse.onSuccess("일일 소비 수정 성공");
     }

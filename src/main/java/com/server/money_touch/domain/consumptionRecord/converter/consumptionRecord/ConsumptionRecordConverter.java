@@ -16,6 +16,7 @@ public class ConsumptionRecordConverter {
                 .amount(requestDTO.getAmount())
                 .content(requestDTO.getContent())
                 .memo(requestDTO.getMemo())
+                .consumeDate(requestDTO.getConsumeDate())
                 .isPublic(true) // 가계부에만 등록
                 .commentCount(0)
                 .wiseCount(0)

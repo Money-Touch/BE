@@ -49,7 +49,7 @@ public class BudgetController {
     @PostMapping()
     public ApiResponse<BudgetResponse.BudgetCreateResultDTO> postBudget(@Valid @RequestBody BudgetRequest.BudgetCreateDTO request) {
         // 로그인 전까지 userId 1로 임시 세팅
-        BudgetResponse.BudgetCreateResultDTO response = budgetCommandService.registerOrUpdateBudgetWithCategories(1L, request);
+        BudgetResponse.BudgetCreateResultDTO response = budgetCommandService.saveOrUpdateBudgetWithCategories(1L, request);
         return ApiResponse.onSuccess(response);
     }
 
