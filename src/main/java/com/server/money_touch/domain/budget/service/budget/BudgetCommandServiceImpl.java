@@ -155,7 +155,7 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
             boolean hasInvalidName = nameToAmount.keySet().stream()
                     .anyMatch(name -> !DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES.contains(name));
             if (hasInvalidName) {
-                throw new ErrorHandler(ErrorStatus.CONSUMPTION_CATEGORY_NOT_FOUND);
+                throw new ErrorHandler(ErrorStatus.CONSUMPTION_CATEGORY_TYPE_NOT_FOUND);
             }
 
             // 누락된 기본 카테고리 이름은 0원으로 보정

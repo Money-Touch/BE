@@ -5,6 +5,7 @@ import lombok.*;
 
 public class ConsumptionRecordResponse {
 
+    @Builder
     @Getter
     @Schema(description = "소비 기록 등록 응답 정보")
     public static class ConsumptionRecordCreateResultDTO {

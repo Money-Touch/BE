@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ConsumptionCategoryRepository extends JpaRepository<ConsumptionCategory, Long> {
+    // 카테고리 이름과 타입으로 유저의 소비 카테고리 조회
     Optional<ConsumptionCategory> findByUserAndBudgetCategoryNameAndBudgetCategoryType(User user, String budgetCategoryName, CategoryType type);
 
-    List<ConsumptionCategory> findAllByUserAndBudgetCategoryType(User user, CategoryType type);
+    // 카테고리 이름으로 유저의 소비 카테고리 조회
+    Optional<ConsumptionCategory> findByUserAndBudgetCategoryName(User user, String budgetCategoryName);
 }

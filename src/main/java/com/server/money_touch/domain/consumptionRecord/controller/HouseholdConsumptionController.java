@@ -1,6 +1,7 @@
 package com.server.money_touch.domain.consumptionRecord.controller;
 
 import com.server.money_touch.domain.consumptionRecord.dto.ConsumptionRecordResponse;
+import com.server.money_touch.domain.consumptionRecord.service.ConsumptionRecordCommandService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/house-holds/consumptions")
 public class HouseholdConsumptionController {
 
+    private final ConsumptionRecordCommandService consumptionRecordCommandService;
+
     // 가계부 일일 소비 등록
     @Operation(
             summary = "일일 소비 등록 API",
@@ -34,6 +37,7 @@ public class HouseholdConsumptionController {
     @ApiSuccessCodeExample(resultClass = ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO.class)
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_CATEGORY_NAME_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
@@ -41,7 +45,8 @@ public class HouseholdConsumptionController {
     public ApiResponse<ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO> postDailyConsumptionRecord(
             @Valid @RequestBody HouseholdConsumptionRequest.DailyConsumptionCreateDTO request){
 
-        ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO response = null;
+        // 로그인 전까지 userId 1로 임시 세팅
+        ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO response = consumptionRecordCommandService.createDailyConsumptionRecord(1L, request);
         return ApiResponse.onSuccess(response);
     }
 
