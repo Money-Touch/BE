@@ -7,6 +7,9 @@ import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategor
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
 import com.server.money_touch.domain.user.entity.User;
 
+import java.time.LocalDate;
+import java.util.List;
+
 public class ConsumptionRecordConverter {
 
     // 일일 소비 기록 시 소비 카테고리 엔티티 생성
@@ -41,6 +44,18 @@ public class ConsumptionRecordConverter {
                 .content(consumptionRecord.getContent())
                 .memo(consumptionRecord.getMemo())
                 .consumeDate(consumptionRecord.getConsumeDate())
+                .build();
+    }
+
+    // 달력 - 특정 날짜의 소비 내역 조회 응답
+    public static HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO toCalendarDailyConsumeDetailDTO(
+            LocalDate targetDate,
+            List<HouseholdConsumptionResponse.ConsumeItemDTO> items
+    ) {
+        return HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO.builder()
+                .date(targetDate.toString())
+                .items(items)
+                .itemSize(items.size())
                 .build();
     }
 }

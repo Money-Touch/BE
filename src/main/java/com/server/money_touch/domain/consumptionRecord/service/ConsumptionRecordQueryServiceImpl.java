@@ -4,6 +4,7 @@ import com.server.money_touch.domain.consumptionRecord.converter.consumptionReco
 import com.server.money_touch.domain.consumptionRecord.dto.HouseholdConsumptionResponse;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
+import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemProjection;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionCategory.ConsumptionCategoryRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord.ConsumptionRecordRepository;
 import com.server.money_touch.domain.user.entity.User;
@@ -15,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Slf4j
 @Validated
@@ -50,5 +54,34 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
 
         log.info("일일 소비 내역 조회 완료, consumptionRecordId: {}", consumptionRecordId);
         return ConsumptionRecordConverter.toDailyConsumptionDetailDTO(consumptionRecord, consumptionCategory);
+    }
+
+    // 달력에서 특정 날짜의 소비 내역 상세 조회
+    @Override
+    public HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO getCalendarDailyConsumptionRecordsDetail(Long userId, int year, int month, int day) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 조회 대상 날짜 생성
+        LocalDate targetDate = LocalDate.of(year, month, day);
+
+        // 3. 해당 날짜의 소비 내역 조회 (Projection 형태)
+        List<DailyConsumptionItemProjection> projections = consumptionRecordRepository.findDailyConsumptionItems(userId, targetDate);
+
+        // 4. Projection → DTO 변환
+        List<HouseholdConsumptionResponse.ConsumeItemDTO> items = projections.stream()
+                .map(p -> HouseholdConsumptionResponse.ConsumeItemDTO.builder()
+                        .consumptionRecordId(p.getConsumptionRecordId())
+                        .categoryName(p.getCategoryName())
+                        .content(p.getContent())
+                        .amount(p.getAmount())
+                        .build())
+                .toList();
+
+        log.info("달력 - 특정 날짜의 소비 내역 조회 완료, targetDate: {}", targetDate);
+
+        // 5. 변환된 결과를 응답 DTO로 매핑하여 반환
+        return ConsumptionRecordConverter.toCalendarDailyConsumeDetailDTO(targetDate, items);
     }
 }

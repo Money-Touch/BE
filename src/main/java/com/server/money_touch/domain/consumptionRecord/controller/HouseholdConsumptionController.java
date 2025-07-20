@@ -169,7 +169,7 @@ public class HouseholdConsumptionController {
     // 가계부 달력 특정 일의 소비 내역 조회
     @Operation(
             summary = "달력 - 특정 날짜 소비 내역 조회 API",
-            description = "입력한 연도(year), 월(month), 일(day)에 해당하는 소비 내역을 조회합니다."
+            description = "입력한 연도(year), 월(month), 일(day)에 해당하는 소비 내역을 조회합니다. 해당 날짜의 소비 내역이 없다면, 빈 리스트를 반환합니다."
     )
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
@@ -182,11 +182,11 @@ public class HouseholdConsumptionController {
             @Parameter(name = "day", description = "조회하려는 소비 일", example = "23", required = true),
     })
     @GetMapping("/calendar/daily")
-    public ApiResponse<HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO> getConsumptionRecordByMonthAndDayInCalendar(@RequestParam Integer year,
-                                                                                                                            @RequestParam Integer month)
+    public ApiResponse<HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO> getConsumptionRecordByMonthAndDayInCalendar(@RequestParam Integer year, @RequestParam Integer month, @RequestParam Integer day)
     {
 
-        HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO response = HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO.builder().build();
+        // 로그인 전까지 userId 1로 임시 세팅
+        HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO response = consumptionRecordQueryService.getCalendarDailyConsumptionRecordsDetail(1L, year, month, day);
         return ApiResponse.onSuccess(response);
     }
 }

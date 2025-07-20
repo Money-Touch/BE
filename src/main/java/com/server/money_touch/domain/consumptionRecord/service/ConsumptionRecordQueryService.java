@@ -10,4 +10,7 @@ public interface ConsumptionRecordQueryService {
 
     // 일일 소비 내역 조회
     HouseholdConsumptionResponse.DailyConsumptionDetailDTO getDailyConsumptionRecordDetail(@ExistUser Long userId, @ExistConsumptionRecord Long consumptionRecordId);
+
+    // 달력 - 특정 날짜의 소비 내역 조회
+    HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO getCalendarDailyConsumptionRecordsDetail(@ExistUser Long userId, int year, int month, int day);
 }
