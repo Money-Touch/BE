@@ -161,8 +161,8 @@ public class HouseholdConsumptionController {
     public ApiResponse<HouseholdConsumptionResponse.CalendarDateAmountMapDTO> getConsumptionRecordByMonthInCalendar(@RequestParam Integer year,
                                                                                                                  @RequestParam Integer month)
     {
-
-        HouseholdConsumptionResponse.CalendarDateAmountMapDTO response = HouseholdConsumptionResponse.CalendarDateAmountMapDTO.builder().build();
+        // 로그인 전까지 userId 1로 임시 세팅
+        HouseholdConsumptionResponse.CalendarDateAmountMapDTO response = consumptionRecordQueryService.getMonthlyConsumptionCalendar(1L, year, month);
         return ApiResponse.onSuccess(response);
     }
 

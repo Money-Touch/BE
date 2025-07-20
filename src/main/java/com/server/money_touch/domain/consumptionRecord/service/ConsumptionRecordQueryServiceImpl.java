@@ -4,6 +4,7 @@ import com.server.money_touch.domain.consumptionRecord.converter.consumptionReco
 import com.server.money_touch.domain.consumptionRecord.dto.HouseholdConsumptionResponse;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
+import com.server.money_touch.domain.consumptionRecord.projection.DailyAmountProjection;
 import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemProjection;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionCategory.ConsumptionCategoryRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord.ConsumptionRecordRepository;
@@ -18,7 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Validated
@@ -83,5 +88,36 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
 
         // 5. 변환된 결과를 응답 DTO로 매핑하여 반환
         return ConsumptionRecordConverter.toCalendarDailyConsumeDetailDTO(targetDate, items);
+    }
+
+    // 가계부 달력 월별 소비 금액 조회
+    @Override
+    public HouseholdConsumptionResponse.CalendarDateAmountMapDTO getMonthlyConsumptionCalendar(Long userId, int year, int month) {
+        // 1. 사용자 존재 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 해당 월의 시작일과 마지막 날짜 계산
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        // 3. 소비 기록에서 일별 총 소비 금액 조회 (날짜 기준 group by)
+        List<DailyAmountProjection> projections = consumptionRecordRepository
+                .findDailyTotalAmounts(userId, startDate, endDate);
+
+        // 4. 소비일 기준 오름차순 정렬된 Map 생성
+        Map<String, Integer> result = projections.stream()
+                .sorted(Comparator.comparing(DailyAmountProjection::getDate)) // LocalDate 기준 정렬
+                .collect(Collectors.toMap(
+                        p -> p.getDate().toString(),            // key: 날짜 문자열
+                        DailyAmountProjection::getTotalAmount, // value: 총 소비 금액
+                        (v1, v2) -> v1,                         // key 충돌 시 첫 번째 값 유지
+                        LinkedHashMap::new                      // 순서 유지
+                ));
+
+        log.info("달력 - 월별 소비 금액 조회 완료, year: {}, month: {}", year, month);
+
+        // 5. DTO 생성 후 반환
+        return HouseholdConsumptionResponse.CalendarDateAmountMapDTO.builder().data(result).build();
     }
 }

@@ -1,9 +1,14 @@
 package com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord;
 
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.server.money_touch.domain.consumptionRecord.entity.QConsumptionCategory;
 import com.server.money_touch.domain.consumptionRecord.entity.QConsumptionRecord;
+import com.server.money_touch.domain.consumptionRecord.projection.DailyAmountProjection;
 import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -20,7 +25,6 @@ public class ConsumptionRecordRepositoryImpl implements ConsumptionRecordReposit
 
     QConsumptionRecord record = QConsumptionRecord.consumptionRecord;
     QConsumptionCategory category = QConsumptionCategory.consumptionCategory;
-
 
     /**
      * 사용자의 특정 날짜에 해당하는 소비 기록 목록을 조회합니다.
@@ -56,5 +60,36 @@ public class ConsumptionRecordRepositoryImpl implements ConsumptionRecordReposit
                 )
                 .orderBy(record.consumeDate.asc())                        // 소비 시간 기준 오름차순 정렬
                 .fetch();                                                 // 결과 조회
+    }
+
+    /**
+     * 특정 유저의 날짜별 소비 금액을 문자열 날짜 기준으로 집계하여 반환
+     */
+    @Override
+    public List<DailyAmountProjection> findDailyTotalAmounts(Long userId, LocalDate startDate, LocalDate endDate) {
+        // 1. DATE_FORMAT 함수로 날짜를 'yyyy-MM-dd' 형식의 문자열로 변환 (MySQL 기준)
+        Expression<String> formattedDate = Expressions.stringTemplate(
+                "DATE_FORMAT({0}, '%Y-%m-%d')",
+                record.consumeDate
+        );
+
+        // 2. QueryDSL로 일별 소비 금액을 집계하는 쿼리 작성
+        return queryFactory
+                .select(Projections.constructor(
+                        DailyAmountProjection.class,
+                        formattedDate,                  // 문자열 날짜
+                        record.amount.sum()             // 일별 총 소비 금액
+                ))
+                .from(record)
+                .where(
+                        record.user.id.eq(userId),      // 조건: 해당 유저
+                        record.consumeDate.between(     // 조건: 시작 ~ 종료 날짜
+                                startDate.atStartOfDay(),
+                                endDate.atTime(23, 59, 59)
+                        )
+                )
+                .groupBy(formattedDate)                 // 날짜별 그룹화
+                .orderBy(new OrderSpecifier<>(Order.ASC, formattedDate))  // 날짜 오름차순 정렬
+                .fetch();                               // 결과 조회
     }
 }
