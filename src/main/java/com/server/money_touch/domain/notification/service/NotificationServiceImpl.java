@@ -28,6 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
     /**
      * 커서 기반 무한스크롤로 알림 목록 조회
      */
+    @Override
     public NotificationResponse.NotificationListDTO getNotificationsByCursor(
             Long userId, Long cursorId, int size) {
 
@@ -45,4 +46,36 @@ public class NotificationServiceImpl implements NotificationService {
         return NotificationConverter.toNotificationListDTO(notificationSlice);
 
     }
+
+    /**
+     * 알림 읽음 처리
+     */
+    @Override
+    @Transactional
+    public NotificationResponse.NotificationReadResultDTO markAsRead(Long userId, Long notificationId) {
+
+        // 존재하는 알림인지 확인
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.NOTIFICATION_NOT_FOUND));
+
+        // 해당 사용자의 알림인지 확인
+        if (!notification.getUser().getId().equals(userId)) {
+            throw new ErrorHandler(ErrorStatus.NO_PERMISSION_FOR_NOTIFICATION);
+        }
+
+        // 이미 읽은 알림인지 확인
+        if (notification.getIsRead()) {
+            throw new ErrorHandler(ErrorStatus.ALREADY_READ_NOTIFICATION);
+        }
+
+        // 알림 읽음 처리
+        notification.markAsRead();
+
+        return NotificationResponse.NotificationReadResultDTO.builder()
+                .notificationId(notificationId)
+                .isRead(true)
+                .message("알림이 읽음 처리되었습니다.")
+                .build();
+    }
+
 }

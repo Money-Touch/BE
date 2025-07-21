@@ -13,4 +13,11 @@ public interface NotificationService {
      */
     NotificationResponse.NotificationListDTO getNotificationsByCursor(Long userId, Long cursorId, int size);
 
+    /**
+     * 알림 읽음 처리
+     * @param userId 사용자 ID
+     * @param notificationId 알림 ID
+     * @return 읽음 처리 결과 DTO
+     */
+    NotificationResponse.NotificationReadResultDTO markAsRead(Long userId, Long notificationId);
 }

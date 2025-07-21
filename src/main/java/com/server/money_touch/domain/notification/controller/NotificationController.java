@@ -69,6 +69,8 @@ import org.springframework.web.bind.annotation.*;
 //        @ApiSuccessCodeExample(resultClass = NotificationResponse.NotificationReadResultDTO.class)
         @ApiErrorCodeExamples({
                 @ApiErrorCodeExample(value = ErrorStatus.class, name = "NOTIFICATION_NOT_FOUND"),
+                @ApiErrorCodeExample(value = ErrorStatus.class, name = "NO_PERMISSION_FOR_NOTIFICATION"),
+                @ApiErrorCodeExample(value = ErrorStatus.class, name = "ALREADY_READ_NOTIFICATION"),
                 @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
                 @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
                 @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
@@ -80,7 +82,10 @@ import org.springframework.web.bind.annotation.*;
         public ApiResponse<NotificationResponse.NotificationReadResultDTO> readNotification(
                 @PathVariable Long notificationId
         ) {
-            NotificationResponse.NotificationReadResultDTO response = NotificationResponse.NotificationReadResultDTO.builder().build();
+            log.info("알림 읽음 처리 요청 - notificationId: {}", notificationId);
+
+            // userId 임시로 1로 지정 (추후 JWT 토큰에서 추출)
+            NotificationResponse.NotificationReadResultDTO response =notificationService.markAsRead(1L, notificationId);
             return ApiResponse.onSuccess(response);
         }
     }
