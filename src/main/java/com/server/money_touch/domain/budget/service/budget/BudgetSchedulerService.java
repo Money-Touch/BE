@@ -26,8 +26,8 @@ public class BudgetSchedulerService {
     /**
      * 매년 1일 12에 전체 유저에 대해 기본 카테고리를 비동기로 등록
      */
-    @Async
-    @Scheduled(cron = "0 0 12 1 * *", zone = "Asia/Seoul") // 매월 1일 12:00
+    @Async("customAsyncExecutor")
+    @Scheduled(cron = "0 0 12 1 * *", zone = "Asia/Seoul") // 매월 1일 12:00// 매월 1일 12:00
     public void registerMonthlyDefaultCategoryBudgets() {
         log.info("🕛 [스케줄러] Budget, 기본 ConsumptionCategory 테이블 생성 작업 시작");
 

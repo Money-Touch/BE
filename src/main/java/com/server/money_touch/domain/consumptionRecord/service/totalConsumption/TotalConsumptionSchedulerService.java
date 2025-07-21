@@ -7,6 +7,7 @@ import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class TotalConsumptionSchedulerService {
     /**
      * 매년 1일 12시에 전체 유저의 월별 총 소비 금액을 비동기로 생성
      */
+    @Async("customAsyncExecutor")
     @Scheduled(cron = "0 0 12 1 * *", zone = "Asia/Seoul") // 매월 1일 12:00
     public void generateMonthlyTotalConsumption() {
         log.info("🕛 [스케줄러] TotalConsumption 총 소비 금액 테이블 생성 작업 시작");
