@@ -36,14 +36,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .orElseThrow(() ->  new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
 
         Pageable pageable = PageRequest.of(0, size);
-        Slice<Notification> notificationSlice;
 
-        // 첫 페이지인지 확인 (cursorId가 null이면 첫 페이지)
-        if (cursorId == null) {
-            notificationSlice = notificationRepository.findFirstPageNotifications(userId, pageable);
-        } else {
-            notificationSlice = notificationRepository.findNotificationsByCursor(userId, cursorId, pageable);
-        }
+        // 하나의 메서드로 커서 기반 조회 (cursorId가 null이면 첫 페이지)
+        Slice<Notification> notificationSlice =
+                notificationRepository.findNotificationsByCursor(userId, cursorId, pageable);
 
         // Converter 사용하여 DTO 변환
         return NotificationConverter.toNotificationListDTO(notificationSlice);

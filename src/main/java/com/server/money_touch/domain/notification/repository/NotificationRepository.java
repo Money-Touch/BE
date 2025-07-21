@@ -13,8 +13,10 @@ import org.springframework.stereotype.Repository;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     /**
-     * 커서 기반 무한스크롤을 위한 알림 조회
-     * 최신순으로 정렬, 커서 ID보다 작은(이전) 알림들을 조회
+     * 커서 기반 무한스크롤로 알림 조회
+     * cursorId가 null이면 첫 페이지 조회 (모든 알림)
+     * cursorId가 있으면 해당 ID보다 작은 알림들 조회
+     * ID 기준 내림차순 정렬 (최신순)
      */
     @Query("SELECT n FROM Notification n " +
             "WHERE n.user.id = :userId " +
@@ -25,13 +27,4 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             @Param("cursorId") Long cursorId,
             Pageable pageable);
 
-    /**
-     * 첫 페이지 조회용 (커서 없이)
-     */
-    @Query("SELECT n FROM Notification n " +
-            "WHERE n.user.id = :userId " +
-            "ORDER BY n.id DESC")
-    Slice<Notification> findFirstPageNotifications(
-            @Param("userId") Long userId,
-            Pageable pageable);
 }
