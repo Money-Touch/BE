@@ -97,4 +97,6 @@ public class BudgetController {
         BudgetResponse.TotalConsumptionResultDTO response = budgetQueryService.findBudgetByIdAndTotalConsumption(1L, year, month);
         return ApiResponse.onSuccess(response);
     }
+
+    //
 }

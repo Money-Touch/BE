@@ -25,5 +25,7 @@ public interface BudgetCommandService {
     void saveCategoryBudgetsByType(List<? extends Object> requestList,
                                    User user, Budget budget,
                                    CategoryType type);
+
+    Budget createOrFindBudgetForMonth(User user);
 }
 

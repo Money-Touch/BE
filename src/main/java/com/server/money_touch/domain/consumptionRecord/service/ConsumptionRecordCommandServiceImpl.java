@@ -88,10 +88,10 @@ public class ConsumptionRecordCommandServiceImpl implements ConsumptionRecordCom
         LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
 
-        // 4-2. 해당 월의 총 소비 금액 조회, 데이터가 없다면 생성
+        // 4-2. 해당 월의 총 소비 금액 조회, 데이터가 없다면 에러
         TotalConsumption totalConsumption = totalConsumptionRepository
                 .findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
-                .orElseGet(() -> totalConsumptionRepository.save(TotalConsumptionConverter.toTotalConsumption(user)));
+                .orElseThrow(() -> new IllegalArgumentException("총 소비 정보가 존재하지 않습니다. 관리자에게 문의해 주세요."));
 
         // 4-3. 총 소비 금액 수정
         totalConsumption.updateTotalConsumptionAmount(consumptionRecord.getAmount(), request.getAmount());
@@ -118,7 +118,7 @@ public class ConsumptionRecordCommandServiceImpl implements ConsumptionRecordCom
         LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
 
-        // 3-2. 해당 월의 총 소비 금액 조회, 데이터가 없다면 생성
+        // 3-2. 해당 월의 총 소비 금액 조회, 데이터가 없다면 에러
         TotalConsumption totalConsumption = totalConsumptionRepository
                 .findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
                 .orElseThrow(() -> new IllegalArgumentException("총 소비 정보가 존재하지 않습니다. 관리자에게 문의해 주세요."));

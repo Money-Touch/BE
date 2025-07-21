@@ -5,6 +5,14 @@ import com.server.money_touch.global.apiPayload.code.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_user_created_month",
+                        columnNames = {"user_id", "created_month"}
+                )
+        }
+)
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,6 +27,14 @@ public class TotalConsumption extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "created_month", nullable = false, length = 7)
+    private String createdMonth;
+
+    @PrePersist
+    public void onPrePersist() {
+        this.createdMonth = this.getCreatedAt().toLocalDate().withDayOfMonth(1).toString().substring(0, 7); // "2025-07"
+    }
 
     // 총 소비 금액 증가
     public void updateAddTotalConsumptionAmount(int amount) {
