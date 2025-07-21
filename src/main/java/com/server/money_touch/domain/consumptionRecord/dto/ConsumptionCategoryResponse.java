@@ -1,6 +1,5 @@
 package com.server.money_touch.domain.consumptionRecord.dto;
 
-import com.server.money_touch.domain.budget.enums.CategoryType;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
