@@ -1,6 +1,7 @@
 package com.server.money_touch.domain.badge.controller;
 
 import com.server.money_touch.domain.badge.dto.BadgeResponse;
+import com.server.money_touch.domain.badge.service.BadgeService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/badge")
 public class BadgeController {
 
+    private final BadgeService badgeService;
+
     @Operation(
             summary = "내가 획득한 배지 목록 조회 API",
             description = "현재 로그인한 사용자가 획득한 배지 목록을 조회하는 API 입니다."
@@ -29,13 +32,14 @@ public class BadgeController {
 //    @ApiSuccessCodeExample(resultClass = BadgeResponse.MyBadgeListResultDTO.class)
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
-            @ApiErrorCodeExample(value = ErrorStatus.class, name = "BADGE_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @GetMapping("/my")
     public ApiResponse<BadgeResponse.MyBadgeListResultDTO> getMyBadges() {
-        BadgeResponse.MyBadgeListResultDTO response = BadgeResponse.MyBadgeListResultDTO.builder().build();
+
+        // userId 임시로 1로 지정 (추후 JWT 토큰에서 추출)
+        BadgeResponse.MyBadgeListResultDTO response = badgeService.getMyBadges(1L);
         return ApiResponse.onSuccess(response);
     }
 
