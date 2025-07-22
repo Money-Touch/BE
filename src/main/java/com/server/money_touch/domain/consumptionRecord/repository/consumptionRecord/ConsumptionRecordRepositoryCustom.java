@@ -3,6 +3,7 @@ package com.server.money_touch.domain.consumptionRecord.repository.consumptionRe
 import com.server.money_touch.domain.consumptionRecord.projection.DailyAmountProjection;
 import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemDetailProjection;
 import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemProjection;
+import org.springframework.data.domain.Slice;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,7 +17,7 @@ public interface ConsumptionRecordRepositoryCustom {
     List<DailyAmountProjection> findDailyTotalAmounts(Long userId, LocalDate startDate, LocalDate endDate);
 
     // 해당 월의 소비 기록을 커서 기반 무한스크롤로 조회
-    List<DailyConsumptionItemProjection> findMonthlyConsumptionItems(Long userId, LocalDate startDate, LocalDate endDate,
+    Slice<DailyConsumptionItemProjection> findMonthlyConsumptionItems(Long userId, LocalDate startDate, LocalDate endDate,
                                                                      Long cursorId, LocalDateTime cursorConsumeDate, int pageSize);
 
     // 특정 소비 기록 ID에 대한 consumeDate를 조회

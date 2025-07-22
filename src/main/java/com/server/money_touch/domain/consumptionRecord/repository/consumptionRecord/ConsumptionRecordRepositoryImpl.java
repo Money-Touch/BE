@@ -14,6 +14,9 @@ import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumpti
 import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemProjection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -43,13 +46,11 @@ public class ConsumptionRecordRepositoryImpl implements ConsumptionRecordReposit
     public List<DailyConsumptionItemDetailProjection> findDailyConsumptionItems(Long userId, LocalDate date) {
         // 입력된 날짜의 시작 시간 (00:00:00)
         LocalDateTime startOfDay = date.atStartOfDay();
-
-        // 입력된 날짜의 끝 시간 (23:59:59.999999999)
         LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
 
-        log.info("Start of day: {}", startOfDay);
+        log.debug("소비 내역 조회 - 날짜: {}", startOfDay.toLocalDate());
 
-        // JPQL 기반 QueryDSL 조회
+        // 최신순 정렬 + 필요한 컬럼만 조회하여 Projection 반환
         return queryFactory
                 .select(Projections.fields(
                         DailyConsumptionItemDetailProjection.class,
@@ -58,51 +59,53 @@ public class ConsumptionRecordRepositoryImpl implements ConsumptionRecordReposit
                         record.content,
                         record.amount
                 ))
-                .from(record)                                              // 소비 기록 테이블
-                .join(record.consumptionCategory, category)               // 소비 기록과 카테고리 조인
+                .from(record)
+                .join(record.consumptionCategory, category)
                 .where(
-                        record.user.id.eq(userId),                        // 특정 유저 ID 조건
-                        record.consumeDate.between(startOfDay, endOfDay) // 해당 날짜 내 소비 기록
+                        record.user.id.eq(userId),
+                        record.consumeDate.between(startOfDay, endOfDay)
                 )
-                .orderBy(record.consumeDate.desc(), record.id.desc())   // 소비 시간 기준 최신순 정렬
-                .fetch();                                              // 결과 조회
+                .orderBy(record.consumeDate.desc(), record.id.desc()) // 최신순 정렬
+                .fetch();
     }
+
 
     /**
      * 특정 유저의 날짜별 소비 금액을 문자열 날짜 기준으로 집계하여 반환
      */
     @Override
     public List<DailyAmountProjection> findDailyTotalAmounts(Long userId, LocalDate startDate, LocalDate endDate) {
-        // 1. DATE_FORMAT 함수로 날짜를 'yyyy-MM-dd' 형식의 문자열로 변환 (MySQL 기준)
-        Expression<String> formattedDate = Expressions.stringTemplate(
-                "DATE_FORMAT({0}, '%Y-%m-%d')",
-                record.consumeDate
+        // 1. DATE() 함수로 날짜만 추출 (MySQL 인덱스 활용 가능성 ↑)
+        Expression<LocalDate> truncatedDate = Expressions.dateTemplate(
+                LocalDate.class, "DATE({0})", record.consumeDate
         );
 
-        // 2. QueryDSL로 일별 소비 금액을 집계하는 쿼리 작성
+        // 2. QueryDSL로 일별 소비 금액 집계
         return queryFactory
-                .select(Projections.constructor(
+                .select(Projections.fields(
                         DailyAmountProjection.class,
-                        formattedDate,                  // 문자열 날짜
-                        record.amount.sum()             // 일별 총 소비 금액
+                        Expressions.dateTemplate(java.sql.Date.class, "DATE({0})", record.consumeDate).as("date"),
+                        record.amount.sum().as("totalAmount")
                 ))
                 .from(record)
                 .where(
-                        record.user.id.eq(userId),      // 조건: 해당 유저
-                        record.consumeDate.between(     // 조건: 시작 ~ 종료 날짜
+                        record.user.id.eq(userId),
+                        record.consumeDate.between(
                                 startDate.atStartOfDay(),
                                 endDate.atTime(23, 59, 59)
                         )
                 )
-                .groupBy(formattedDate)                 // 날짜별 그룹화
-                .orderBy(new OrderSpecifier<>(Order.ASC, formattedDate))  // 날짜 오름차순 정렬
-                .fetch();                               // 결과 조회
+                .groupBy(Expressions.dateTemplate(java.sql.Date.class, "DATE({0})", record.consumeDate))
+                .orderBy(Expressions.dateTemplate(java.sql.Date.class, "DATE({0})", record.consumeDate).asc())
+                .fetch();
     }
 
     // 해당 월의 소비 기록을 커서 기반 무한스크롤로 조회
     @Override
-    public List<DailyConsumptionItemProjection> findMonthlyConsumptionItems(Long userId, LocalDate startDate, LocalDate endDate,
-                                                                            Long cursorId, LocalDateTime cursorConsumeDate, int pageSize) {
+    public Slice<DailyConsumptionItemProjection> findMonthlyConsumptionItems(
+            Long userId, LocalDate startDate, LocalDate endDate,
+            Long cursorId, LocalDateTime cursorConsumeDate, int pageSize) {
+
         // 조회 시작일과 종료일을 LocalDateTime으로 변환
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atTime(23, 59, 59);
@@ -121,7 +124,7 @@ public class ConsumptionRecordRepositoryImpl implements ConsumptionRecordReposit
         }
 
         // 최종 QueryDSL 쿼리 실행
-        return queryFactory
+        List<DailyConsumptionItemProjection> results = queryFactory
                 .select(Projections.fields(
                         DailyConsumptionItemProjection.class,
                         record.id.as("consumptionRecordId"),
@@ -136,6 +139,15 @@ public class ConsumptionRecordRepositoryImpl implements ConsumptionRecordReposit
                 .orderBy(record.consumeDate.desc(), record.id.desc()) // 최신순 정렬
                 .limit(pageSize + 1) // 다음 페이지 존재 여부 판단을 위한 +1
                 .fetch();
+
+        // Slice 처리를 위한 hasNext 계산
+        boolean hasNext = results.size() > pageSize;
+        if (hasNext) {
+            results.remove(results.size() - 1); // 초과한 1개 제거
+        }
+
+        // Pageable은 의미상으로만 사용하므로 offset=0 전달
+        return new SliceImpl<>(results, PageRequest.of(0, pageSize), hasNext);
     }
 
     // 특정 소비 기록 ID에 대한 consumeDate를 조회
