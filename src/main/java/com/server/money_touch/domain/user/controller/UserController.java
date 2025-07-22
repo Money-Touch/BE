@@ -1,6 +1,8 @@
 package com.server.money_touch.domain.user.controller;
 import com.server.money_touch.domain.user.dto.UserRequest;
 import com.server.money_touch.domain.user.dto.UserResponse;
+import com.server.money_touch.domain.user.service.user.UserCommandService;
+import com.server.money_touch.domain.user.service.user.UserQueryService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
@@ -26,6 +28,8 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/user")
 public class UserController{
 
+    private final UserCommandService userCommandService;
+    private final UserQueryService userQueryService;
 
     @Operation(
             summary = "유저 상세정보 저장 API",
@@ -148,7 +152,7 @@ public class UserController{
     // 대표 배지 설정
     @Operation(
             summary = "대표 배지 설정 API",
-            description = "획득한 배지 중에서 대표 배지를 설정하는 API입니다. UserBadge 테이블에서 획득 여부를 확인 후 User 엔티티의 badgeId를 업데이트합니다."
+            description = "획득한 배지 중에서 대표 배지를 설정하는 API입니다. UserBadge 테이블에서 획득 여부를 확인 후 User 엔티티의 badgeId를 업데이트합니다. 대표배지는 1개만 설정이 가능하고, 새로 설정하면 교체됩니다. "
     )
 //    @ApiSuccessCodeExample(resultClass = BadgeResponse.BadgeDetailResultDTO.class)
     @ApiErrorCodeExamples({
@@ -166,7 +170,28 @@ public class UserController{
 //            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long badgeId
     ) {
-        UserResponse.RepresentativeBadgeResultDTO response = UserResponse.RepresentativeBadgeResultDTO.builder().build();
+        // userId 임시로 1로 지정 (추후 JWT 토큰에서 추출)
+        UserResponse.RepresentativeBadgeResultDTO response = userCommandService.setRepresentativeBadge(1L, badgeId);
+        return ApiResponse.onSuccess(response);
+    }
+
+    // 대표 배지 조회
+    @Operation(
+            summary = "대표 배지 조회 API",
+            description = "사용자의 대표 배지 정보를 조회하는 API입니다. 대표 배지가 설정되어 있지 않은 경우, 응답은 null입니다."
+    )
+//    @ApiSuccessCodeExample(resultClass = BadgeResponse.BadgeDetailResultDTO.class)
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "BADGE_NOT_EARNED"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
+    })
+    @GetMapping("/representative-badge")
+    public ApiResponse<UserResponse.RepresentativeBadgeResultDTO> getRepresentativeBadge(
+//            @AuthenticationPrincipal UserPrincipal userPrincipal
+    ) {
+        // userId 임시로 1로 지정 (추후 JWT 토큰에서 추출)
+        UserResponse.RepresentativeBadgeResultDTO response = userQueryService.getRepresentativeBadge(1L);
         return ApiResponse.onSuccess(response);
     }
 }
