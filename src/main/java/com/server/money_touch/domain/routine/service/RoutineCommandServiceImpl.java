@@ -100,7 +100,7 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
 
         // 9. 결과 DTO 변환 후 반환
         Long routineId = routine.getId();
-        log.info("소비 루틴 등록 완료, routineId: {}", routineId);
+        log.info("소비 루틴 등록 완료 - userId: {}, routineId: {}", userId, routineId);
         return RoutineConverter.toRoutineCreateResultDTO(routineId);
     }
 }
