@@ -99,7 +99,7 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
             updateCategoryBudgetsByType(request.getCustomCategoryBudgets(), user, budget, CategoryType.CUSTOM, existingMapByType.getOrDefault(CategoryType.CUSTOM, Map.of()));
             updateCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY, existingMapByType.getOrDefault(CategoryType.ROUTINE_CATEGORY, Map.of()));
 
-            log.info("예산 수정 완료, budgetId: {}", budget.getId());
+            log.info("예산 수정 완료 - userId: {}, budgetId: {}", userId, budget.getId());
         } else {
             // 5-B. 예산 없음: 새로 등록
             budget = BudgetConverter.toBudgetEntity(user, request.getTotalBudget());
@@ -109,7 +109,7 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
             saveCategoryBudgetsByType(request.getCustomCategoryBudgets(), user, budget, CategoryType.CUSTOM);
             saveCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY);
 
-            log.info("예산 등록 완료, budgetId: {}", budget.getId());
+            log.info("예산 등록 완료 - userId: {}, budgetId: {}", user.getId(), budget.getId());
         }
 
         return BudgetConverter.toBudgetCreateResultDto(budget.getId());

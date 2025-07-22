@@ -76,7 +76,7 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
                         .build())
                 .collect(Collectors.toList());
 
-        log.info("내 소비 루틴 상세 조회 완료, routeIneId: {}", routineId);
+        log.info("내 소비 루틴 상세 조회 완료 - userId: {}, routeIneId: {}", userId, routineId);
         return RoutineConverter.toRoutineDetailDTO(budget.getBudgetTotal(), routine.getRoutineName(), categoryBudgetList);
     }
 
@@ -92,7 +92,7 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
         // 3. 조회된 루틴 리스트 추출
         List<RoutineResponse.RoutineThumbnailDTO> routineList = slice.getContent();
 
-        log.info("내 소비 루틴 목록 조회(커서 기반 무한스크롤) 완료, cursorId: {}", cursorId);
+        log.info("내 소비 루틴 목록 조회(커서 기반 무한스크롤) 완료 - userId: {}, cursorId: {}", userId, cursorId);
         return RoutineConverter.toMyRoutineListDTO(routineList, slice);
     }
 }
