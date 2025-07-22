@@ -15,6 +15,7 @@ import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -132,19 +133,18 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
-        // 커서 ID가 존재할 경우, 해당 ID의 consumeDate 조회
+        // 커서 ID가 존재할 경우, 해당 ID의 consumeDate 조회 (consumeDate + id 기준 커서 페이징)
         LocalDateTime cursorConsumeDate = null;
         if (cursorId != null) {
             cursorConsumeDate = consumptionRecordRepository.findConsumeDateById(cursorId);
         }
 
-        // 소비 기록 페이징 조회 (consumeDate + id 최신순 기준)
-        List<DailyConsumptionItemProjection> fetched = consumptionRecordRepository
+        // 소비 기록 Slice 조회 (consumeDate + id 기준 최신순 페이징)
+        Slice<DailyConsumptionItemProjection> slice = consumptionRecordRepository
                 .findMonthlyConsumptionItems(userId, startDate, endDate, cursorId, cursorConsumeDate, PAGE_SIZE);
 
-        // 다음 페이지 존재 여부 판단
-        boolean hasNext = fetched.size() > PAGE_SIZE;
-        List<DailyConsumptionItemProjection> content = hasNext ? fetched.subList(0, PAGE_SIZE) : fetched;
+        // Slice에서 실제 데이터 리스트 추출
+        List<DailyConsumptionItemProjection> content = slice.getContent();
 
         // 날짜(LocalDate) 기준으로 그룹핑 (TreeMap: 날짜 오름차순 정렬)
         Map<LocalDate, List<HouseholdConsumptionResponse.DailyRecordDTO>> grouped = content.stream()
@@ -160,7 +160,7 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
                 .sorted(Comparator.comparing(HouseholdConsumptionResponse.DailyHistoryDTO::getDate).reversed())
                 .toList();
 
-        // 다음 커서 ID 설정
+        // 다음 커서 ID 설정 (마지막 요소의 ID 사용)
         Long nextCursorId = content.isEmpty() ? null : content.get(content.size() - 1).getConsumptionRecordId();
 
         log.info("달력 - 해당 월의 소비 내역 목록 조회(커서 기반 무한스크롤) 완료, year: {}, month: {}, cursorId: {}, nextCursorId: {}", year, month, cursorId, nextCursorId);
@@ -168,9 +168,9 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
         // 최종 응답 DTO 반환
         return ConsumptionRecordConverter.toMonthlyHistoryResponseDTO(
                 dailyHistory,
-                cursorId == null,   // isFirst
-                hasNext,
-                nextCursorId
+                cursorId == null,            // isFirst: 커서가 없으면 첫 페이지
+                slice.hasNext(),             // hasNext: 다음 페이지 존재 여부
+                nextCursorId                 // nextCursorId: 다음 요청 시 사용할 커서 ID
         );
     }
 }

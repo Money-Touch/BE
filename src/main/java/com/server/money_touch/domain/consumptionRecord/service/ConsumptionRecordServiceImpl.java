@@ -67,6 +67,7 @@ public class ConsumptionRecordServiceImpl implements ConsumptionRecordService{
                 .wiseCount(0)
                 .wasteCount(0)
                 .viewCount(0)
+                .consumeDate(LocalDateTime.now())
                 .build();
 
         consumptionRecordRepository.save(record);
