@@ -57,25 +57,25 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
             throw new ErrorHandler(ROUTINE_ALREADY_EXIST);
         }
 
-        // 2. 예산 조회 및 예산 총액/루틴 여부 수정
-        Budget budget = budgetRepository.findById(budgetId)
-                .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_FOUND));
-        budget.updateTotalBudget(request.getTotalBudget());
-
-        // 3. 카테고리 총합 계산
+        // 2. 카테고리 총합 계산
         int totalCategoryBudget = Optional.ofNullable(request.getBudgetList())
                 .orElse(List.of())
                 .stream()
                 .mapToInt(RoutineRequest.CategoryBudgetDTO::getAmount)
                 .sum();
 
-        // 4. 예산 총액과 일치 여부 확인
+        // 3. 예산 총액과 일치 여부 확인
         if (totalCategoryBudget > request.getTotalBudget()) {
             throw new ErrorHandler(ErrorStatus.TOTAL_BUDGET_EXCEEDED); // 총액 초과
         }
         if (totalCategoryBudget < request.getTotalBudget()) {
             throw new ErrorHandler(ErrorStatus.TOTAL_BUDGET_TOO_LOW); // 총액 미달
         }
+
+        // 4. 예산 조회 및 예산 총액/루틴 여부 수정
+        Budget budget = budgetRepository.findById(budgetId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_FOUND));
+        budget.updateTotalBudget(request.getTotalBudget());
 
         // 5. 요청된 카테고리 이름 → 금액 맵핑
         Map<String, Integer> requestMap = request.getBudgetList().stream()

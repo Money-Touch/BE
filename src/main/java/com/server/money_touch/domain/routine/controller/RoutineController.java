@@ -61,7 +61,7 @@ public class RoutineController {
     public ApiResponse<RoutineResponse.RoutineCreateResultDTO> postRoutine(@Valid @RequestBody RoutineRequest.RoutineCreateDTO request,
                                                                            @PathVariable Long budgetId) {
         // 로그인 전까지 userId 1로 임시 세팅
-        RoutineResponse.RoutineCreateResultDTO response = routineCommandService.saveRoutineWithRoutineHashtags(1L, budgetId, request);
+        RoutineResponse.RoutineCreateResultDTO response = routineCommandService.saveRoutineWithRoutineHashtags(3L, budgetId, request);
         return ApiResponse.onSuccess(response);
     }
 
