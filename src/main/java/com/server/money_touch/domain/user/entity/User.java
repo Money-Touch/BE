@@ -5,11 +5,9 @@ import com.server.money_touch.domain.user.enums.AuthType;
 import com.server.money_touch.domain.user.enums.Role;
 import com.server.money_touch.global.apiPayload.code.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,4 +35,5 @@ public class User extends BaseEntity {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true) // 해당 user 삭제시 userDetail 자동삭제
     @JoinColumn(name = "user_detail_id")
     private UserDetail userDetail;
+
 }
