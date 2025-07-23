@@ -28,4 +28,7 @@ public class LocalLogin extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    public void encodePassword(String password) {
+        this.password = password;
+    }
 }
