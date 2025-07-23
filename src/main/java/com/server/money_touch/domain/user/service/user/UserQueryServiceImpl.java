@@ -1,20 +1,11 @@
 package com.server.money_touch.domain.user.service.user;
 
-import com.server.money_touch.domain.badge.converter.BadgeConverter;
-import com.server.money_touch.domain.badge.dto.BadgeResponse;
-import com.server.money_touch.domain.badge.entity.UserBadge;
 import com.server.money_touch.domain.badge.repository.UserBadgeRepository;
-import com.server.money_touch.domain.user.dto.UserResponse;
-import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
-import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
-import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -31,43 +22,4 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.findById(userId).isPresent();
     }
 
-    // 현재 대표 배지 조회
-    @Override
-    public UserResponse.RepresentativeBadgeResultDTO getRepresentativeBadge(Long userId) {
-
-        log.info("대표 배지 조회 시작 - 사용자 ID: {}", userId);
-
-        // 1. 사용자 존재 확인
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->  new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
-
-        // 2. 대표 배지가 설정되어있는지 확인 -> 대표배지가 없는 경우 null
-        Long badgeId = user.getBadgeId();
-        if(badgeId == null) {
-            log.info("사용자의 대표 배지가 설정되어있지 않음 - 사용자 ID: {}", userId);
-            return null;
-        }
-
-        // 3. UserBadge를 통해 배지 정보 조회 (Badge 정보도 같이)
-        Optional<UserBadge> userBadgeOpt = userBadgeRepository.findByUserAndBadgeId(user, badgeId);
-        if (userBadgeOpt.isEmpty()) {
-            // 대표 배지로 설정되어 있지만 실제로 획득하지 않은 경우
-            log.warn("사용자가 획득하지 않은 배지가 대표 배지로 설정됨 - 사용자 ID: {}, 배지 ID: {}", userId, badgeId);
-            throw new ErrorHandler(ErrorStatus.BADGE_NOT_EARNED);
-        }
-
-        UserBadge userBadge = userBadgeOpt.get();
-
-        log.info("✅현재 대표 배지 조회 완료 - 사용자 ID: {}, 배지 ID: {}", userId, badgeId);
-
-        // 4. DTO 변환
-        BadgeResponse.BadgeDetailResultDTO badgeDetail = BadgeConverter.toBadgeDetailDTO(userBadge);
-
-        return UserResponse.RepresentativeBadgeResultDTO.builder()
-                .badgeId(badgeDetail.getBadgeId())
-                .badgeName(badgeDetail.getName())
-                .badgeImageUrl(badgeDetail.getImageUrl())
-                .badgeDescription(badgeDetail.getDescription())
-                .build();
-    }
 }

@@ -39,4 +39,15 @@ public class BadgeConverter {
                 .badges(badgeList)
                 .build();
     }
+
+    // UserBadge → 대표 배지 응답 DTO
+    public static BadgeResponse.RepresentativeBadgeResultDTO toRepresentativeBadgeDTO(UserBadge userBadge) {
+        Badge badge = userBadge.getBadge();
+        return BadgeResponse.RepresentativeBadgeResultDTO.builder()
+                .badgeId(badge.getId())
+                .badgeName(badge.getName())
+                .badgeImageUrl(badge.getImageUrl())
+                .badgeDescription(badge.getDescription())
+                .build();
+    }
 }

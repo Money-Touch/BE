@@ -19,11 +19,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Slf4j
-public class BadgeServiceImpl implements BadgeService {
+public class BadgeQueryServiceImpl implements BadgeQueryService {
 
     private final UserBadgeRepository userBadgeRepository;
     private final UserRepository userRepository;
 
+    // 내가 획득한 배지 목록 조회
     @Override
     public BadgeResponse.MyBadgeListResultDTO getMyBadges(Long userId) {
 
@@ -36,7 +37,38 @@ public class BadgeServiceImpl implements BadgeService {
 
         log.info("사용자 배지 조회 완료 - 사용자 ID: {}, 배지 개수: {}", userId, userBadges.size());
 
-        // DTO 변환 및 반환
+        // 3. DTO 반환
         return BadgeConverter.toMyBadgeListDTO(userBadges);
+    }
+
+
+    // 현재 대표 배지 조회
+    @Override
+    public BadgeResponse.RepresentativeBadgeResultDTO getRepresentativeBadge(Long userId) {
+
+        log.info("대표 배지 조회 시작 - 사용자 ID: {}", userId);
+
+        // 1. 사용자 존재 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->  new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 대표 배지가 설정되어있는지 확인 -> 대표배지가 없는 경우 null
+        Long badgeId = user.getBadgeId();
+        if(badgeId == null) {
+            log.info("사용자의 대표 배지가 설정되어있지 않음 - 사용자 ID: {}", userId);
+            return null;
+        }
+
+        // 3. 사용자가 해당 배지를 획득했는지 확인
+        UserBadge userBadge = userBadgeRepository.findByUserAndBadgeId(user, badgeId)
+                .orElseThrow(() -> {
+                    log.warn("사용자가 획득하지 않은 배지가 대표 배지로 설정됨 - 사용자 ID: {}, 배지 ID: {}", userId, badgeId);
+                    return new ErrorHandler(ErrorStatus.BADGE_NOT_EARNED);
+                });
+
+        log.info("✅현재 대표 배지 조회 완료 - 사용자 ID: {}, 배지 ID: {}", userId, badgeId);
+
+        // 4. DTO 반환
+        return BadgeConverter.toRepresentativeBadgeDTO(userBadge);
     }
 }

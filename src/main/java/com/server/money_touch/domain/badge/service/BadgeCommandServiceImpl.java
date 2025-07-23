@@ -1,11 +1,10 @@
-package com.server.money_touch.domain.user.service.user;
+package com.server.money_touch.domain.badge.service;
 
 import com.server.money_touch.domain.badge.converter.BadgeConverter;
 import com.server.money_touch.domain.badge.dto.BadgeResponse;
 import com.server.money_touch.domain.badge.entity.UserBadge;
 import com.server.money_touch.domain.badge.repository.BadgeRepository;
 import com.server.money_touch.domain.badge.repository.UserBadgeRepository;
-import com.server.money_touch.domain.user.dto.UserResponse;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
@@ -19,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional
 @Slf4j
-public class UserCommandServiceImpl implements UserCommandService {
+public class BadgeCommandServiceImpl implements BadgeCommandService {
 
     private final UserRepository userRepository;
     private final UserBadgeRepository userBadgeRepository;
@@ -27,7 +26,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     // 대표 배지 설정
     @Override
-    public UserResponse.RepresentativeBadgeResultDTO setRepresentativeBadge(Long userId, Long badgeId) {
+    public BadgeResponse.RepresentativeBadgeResultDTO setRepresentativeBadge(Long userId, Long badgeId) {
         log.info("대표 배지 설정 시작 - 사용자 ID: {}, 배지 ID: {}", userId, badgeId);
 
         // 1. 사용자 존재 확인
@@ -49,14 +48,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         log.info("✅대표 배지 설정 완료 - 사용자 ID: {}, 설정된 배지 ID: {}", userId, badgeId);
 
-        // 5. 응답 DTO 변환
-        BadgeResponse.BadgeDetailResultDTO badgeDetail = BadgeConverter.toBadgeDetailDTO(userBadge);
-
-        return UserResponse.RepresentativeBadgeResultDTO.builder()
-                .badgeId(badgeDetail.getBadgeId())
-                .badgeName(badgeDetail.getName())
-                .badgeImageUrl(badgeDetail.getImageUrl())
-                .badgeDescription(badgeDetail.getDescription())
-                .build();
+        // 5. DTO 반환
+        return BadgeConverter.toRepresentativeBadgeDTO(userBadge);
     }
 }
