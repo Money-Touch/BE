@@ -44,7 +44,7 @@ public class ReactionServiceImpl implements ReactionService {
 
         // 3. 공개 피드만 리액션 가능
         if (!consumptionRecord.isPublic()) {
-            throw new ErrorHandler(ErrorStatus.FORBIDDEN_REACTION_ON_PRIVATE_FEED);
+            throw new ErrorHandler(ErrorStatus.FORBIDDEN_ACCESS_ON_PRIVATE_FEED);
         }
 
         // 4. 기존 리액션 존재 여부 조회

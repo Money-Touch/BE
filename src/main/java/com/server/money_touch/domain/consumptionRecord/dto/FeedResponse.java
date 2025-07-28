@@ -132,6 +132,35 @@ public class FeedResponse {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @Schema(description = "댓글 + 대댓글 조회 응답 정보")
+    public static class CommentTreeDTO {
+
+        @Schema(description = "댓글 ID", example = "10")
+        private Long commentId;
+
+        @Schema(description = "작성자 ID", example = "1")
+        private Long userId;
+
+        @Schema(description = "작성자 닉네임", example = "유저1")
+        private String nickname;
+
+        @Schema(description = "댓글 내용", example = "마라탕 맛있죠!")
+        private String content;
+
+        @Schema(description = "좋아요 수", example = "3")
+        private Integer likes;
+
+        @Schema(description = "작성 시간", example = "2024-07-28T13:00:00")
+        private LocalDateTime createdAt;
+
+        @Schema(description = "대댓글 목록")
+        private List<CommentTreeDTO> replies;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     @Schema(description = "리액션 결과 DTO")
     public static class ReactionResultDTO {
 

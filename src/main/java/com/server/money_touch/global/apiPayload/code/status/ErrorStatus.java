@@ -36,13 +36,12 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 소비 기록 에러
     CONSUMPTION_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "CONSUMPTION4001", "일치하는 소비기록이 존재하지 않습니다."),
+    FORBIDDEN_ACCESS_ON_PRIVATE_FEED(HttpStatus.FORBIDDEN, "CONSUMPTION4002", "비공개 피드엔 접근할 수 없습니다."),
 
     // 댓글 관련 에러
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT4001", "존재하지 않는 댓글입니다."),
     PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT4002", "부모 댓글을 찾을 수 없습니다."),
     NESTED_REPLY_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COMMENT4003", "대댓글에는 댓글을 달 수 없습니다."),
-    COMMENT_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "COMMENT4004", "댓글 내용이 너무 깁니다. (최대 300자)"),
-    COMMENT_CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "COMMENT4005", "댓글 내용을 입력해주세요."),
 
     // 배지 관련 에러
     BADGE_NOT_FOUND(HttpStatus.NOT_FOUND, "BADGE4001", "존재하지 않는 배지 입니다."),
@@ -55,9 +54,6 @@ public enum ErrorStatus implements BaseErrorCode {
     ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST, "ROUTINE4001", "아이디와 일치하는 소비 루틴이 없습니다."),
     ROUTINE_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "ROUTINE4002", "한 달 소비 루틴 등록 횟수를 초과하였습니다."),
     ERROR_UPLOAD_ROUTINE_IMG(HttpStatus.INTERNAL_SERVER_ERROR, "ROUTINE5001", "소비 루틴 이미지 등록에 실패하였습니다."),
-
-    // 리액션 관련 에러
-    FORBIDDEN_REACTION_ON_PRIVATE_FEED(HttpStatus.FORBIDDEN, "REACTION4002", "비공개 피드엔 리액션을 할 수 없습니다."),
 
     // 알림 관련 에러
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "존재하지 않는 알림입니다."),
