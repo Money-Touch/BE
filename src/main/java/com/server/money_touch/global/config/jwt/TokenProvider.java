@@ -2,6 +2,9 @@ package com.server.money_touch.global.config.jwt;
 
 
 import com.server.money_touch.domain.user.dto.TokenResponse;
+import com.server.money_touch.domain.user.entity.CustomUserDetails;
+import com.server.money_touch.domain.user.entity.User;
+import com.server.money_touch.domain.user.repository.user.UserRepository;
 import com.server.money_touch.global.properties.Constants;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -10,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -25,6 +28,7 @@ import java.util.Date;
 public class TokenProvider {
 
     private final JwtProperties jwtProperties;
+    private final UserRepository userRepository;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes());
@@ -34,14 +38,20 @@ public class TokenProvider {
      * Access Token과 Refresh Token을 함께 생성
      */
     public TokenResponse generateTokens(Authentication authentication) {
-        String email = authentication.getName();
-        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        // ✅ CustomUserDetails로 다운캐스팅
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        String email = userDetails.getUsername(); // 또는 userDetails.getEmail()
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+        Long userId = userDetails.getId(); // ✅ userId 추출
+
         Date now = new Date();
 
-        // Access Token 생성
+        // ✅ Access Token 생성 (userId 포함)
         String accessToken = Jwts.builder()
                 .setSubject(email)
                 .claim("role", role)
+                .claim("userId", userId) // ✅ userId 클레임 추가
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + jwtProperties.getExpiration().getAccess()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -62,7 +72,6 @@ public class TokenProvider {
                 .tokenType("Bearer")
                 .build();
     }
-
     /**
      * 토큰 유효성 검증
      */
@@ -131,10 +140,16 @@ public class TokenProvider {
                 .getBody();
 
         String email = claims.getSubject();
-        String role = claims.get("role", String.class);
 
-        User principal = new User(email, "", Collections.singleton(() -> role));
-        return new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
+        // 1. DB에서 유저 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 2. CustomUserDetails 생성
+        CustomUserDetails customUserDetails = new CustomUserDetails(user, "");
+
+        // 3. Authentication 객체 반환
+        return new UsernamePasswordAuthenticationToken(customUserDetails, token, customUserDetails.getAuthorities());
     }
 
     /**

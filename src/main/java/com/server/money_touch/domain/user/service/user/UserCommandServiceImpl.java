@@ -4,6 +4,7 @@ import com.server.money_touch.domain.user.converter.UserConverter;
 import com.server.money_touch.domain.user.dto.TokenResponse;
 import com.server.money_touch.domain.user.dto.UserRequest;
 import com.server.money_touch.domain.user.dto.UserResponse;
+import com.server.money_touch.domain.user.entity.CustomUserDetails;
 import com.server.money_touch.domain.user.entity.LocalLogin;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.enums.AuthType;
@@ -139,9 +140,14 @@ public class UserCommandServiceImpl implements UserCommandService {
      */
     private Authentication createAuthentication(User user) {
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().name());
+        LocalLogin localLogin = user.getLocalLogin();
+        if (localLogin == null) {
+            throw new RuntimeException("로컬 로그인 정보가 없습니다.");
+        }
+        CustomUserDetails customUserDetails = new CustomUserDetails(user, localLogin.getPassword());
 
         return new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
+                customUserDetails,
                 null,
                 Collections.singletonList(authority)
         );

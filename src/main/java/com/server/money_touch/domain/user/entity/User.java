@@ -22,14 +22,14 @@ public class User extends BaseEntity {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AuthType authType;
-
     @Column(nullable = false, unique = true)
     private String nickname;
 
     private String profileImgUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthType authType;
 
     // 대표 배지 id
     private Long badgeId;

@@ -98,7 +98,7 @@ public class    UserRequest{
         @Email(message = "이메일 형식이 올바르지 않습니다")
         private String email;
 
-        @Schema(description = "비밀번호" , example = "12345678aB!")
+        @Schema(description = "비밀번호" , example = "12345678Abc@")
         @NotBlank(message = "비밀번호는 필수입니다")
         private String password;
 
