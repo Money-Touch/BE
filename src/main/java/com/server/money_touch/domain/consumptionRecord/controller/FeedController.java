@@ -2,6 +2,7 @@ package com.server.money_touch.domain.consumptionRecord.controller;
 
 import com.server.money_touch.domain.consumptionRecord.dto.FeedRequest;
 import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
+import com.server.money_touch.domain.consumptionRecord.service.reaction.ReactionService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/feed")
 public class FeedController {
+
+    private final ReactionService reactionService;
 
     // 피드 홈 (피드 리스트) 조회
     @Operation(
@@ -116,7 +119,7 @@ public class FeedController {
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_RECORD_NOT_FOUND"),
-            @ApiErrorCodeExample(value = ErrorStatus.class, name = "REACTION_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "FORBIDDEN_REACTION_ON_PRIVATE_FEED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
@@ -129,7 +132,7 @@ public class FeedController {
             @PathVariable Long consumptionRecordId,
             @RequestBody @Valid FeedRequest.ReactionCreateDTO request
     ) {
-        FeedResponse.ReactionResultDTO response = FeedResponse.ReactionResultDTO.builder().build();
+        FeedResponse.ReactionResultDTO response = reactionService.addOrUpdateReaction(1L, consumptionRecordId, request);
         return ApiResponse.onSuccess(response);
     }
 

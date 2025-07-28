@@ -4,12 +4,14 @@ import com.server.money_touch.domain.consumptionRecord.enums.ReactionType;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.global.apiPayload.code.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
+@Setter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Table(uniqueConstraints = {
@@ -29,5 +31,9 @@ public class Reaction extends BaseEntity {
     @Column(nullable = false)
     private ReactionType type;
 
+    // 리액션 타입 변경
+    public void updateType(ReactionType type) {
+        this.type = type;
+    }
 }
 

@@ -77,6 +77,10 @@ public class FeedResponse {
 
         @Schema(description = "조회 수", example = "21")
         private Integer viewCount;
+
+        @Schema(description = "현재 내가 누른 리액션 타입 (없으면 null)", example = "WISE")
+        private String myReaction;
+
     }
 
     @Builder
