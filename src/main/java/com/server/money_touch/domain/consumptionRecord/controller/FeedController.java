@@ -2,6 +2,7 @@ package com.server.money_touch.domain.consumptionRecord.controller;
 
 import com.server.money_touch.domain.consumptionRecord.dto.FeedRequest;
 import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
+import com.server.money_touch.domain.consumptionRecord.service.comment.CommentLikeService;
 import com.server.money_touch.domain.consumptionRecord.service.comment.CommentService;
 import com.server.money_touch.domain.consumptionRecord.service.reaction.ReactionService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
@@ -28,6 +29,7 @@ public class FeedController {
 
     private final ReactionService reactionService;
     private final CommentService commentService;
+    private final CommentLikeService commentLikeService;
 
     // 피드 홈 (피드 리스트) 조회
     @Operation(
@@ -108,6 +110,29 @@ public class FeedController {
             @RequestBody @Valid FeedRequest.CommentCreateDTO request
     ) {
         FeedResponse.CommentResultDTO response = commentService.createComment(1L, consumptionRecordId, request);
+        return ApiResponse.onSuccess(response);
+    }
+
+    // 댓글 좋아요
+    @Operation(
+            summary = "댓글 좋아요 추가/취소 API",
+            description = "댓글에 좋아요를 누르거나 취소하는 API입니다. 같은 사용자가 같은 댓글에 중복으로 좋아요를 누를 수 없습니다. 다시 누르면 취소됩니다."
+    )
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "COMMENT_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
+    })
+    @Parameters({
+            @Parameter(name = "commentId", description = "댓글 ID", required = true, example = "3")
+    })
+    @PostMapping("/comment/{commentId}/like")
+    public ApiResponse<FeedResponse.CommentLikeResultDTO> addOrRemoveCommentLike(
+//          @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long commentId
+    ) {
+        FeedResponse.CommentLikeResultDTO response = commentLikeService.addOrRemoveLike(1L, commentId);
         return ApiResponse.onSuccess(response);
     }
 

@@ -157,6 +157,23 @@ public class FeedResponse {
         private List<CommentTreeDTO> replies;
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "댓글 좋아요 응답 정보")
+    public static class CommentLikeResultDTO {
+
+        @Schema(description = "댓글 ID", example = "1")
+        private Long commentId;
+
+        @Schema(description = "좋아요 개수", example = "8")
+        private int likeCount;
+
+        @Schema(description = "현재 사용자가 좋아요를 눌렀는지 여부", example = "true")
+        private boolean liked;
+    }
+
     @Getter
     @Builder
     @AllArgsConstructor

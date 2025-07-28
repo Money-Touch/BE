@@ -6,4 +6,5 @@ import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
 public interface CommentService {
 
     FeedResponse.CommentResultDTO createComment(Long userId, Long consumptionRecordId, FeedRequest.CommentCreateDTO request);
+
 }
