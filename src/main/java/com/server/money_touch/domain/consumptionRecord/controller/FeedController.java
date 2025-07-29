@@ -120,6 +120,7 @@ public class FeedController {
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_RECORD_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "FORBIDDEN_ACCESS_ON_PRIVATE_FEED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @Parameters({
@@ -142,6 +143,7 @@ public class FeedController {
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "COMMENT_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "FORBIDDEN_ACCESS_ON_PRIVATE_FEED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
