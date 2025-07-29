@@ -1,5 +1,6 @@
 package com.server.money_touch.domain.consumptionRecord.dto;
 
+import com.server.money_touch.domain.consumptionRecord.enums.ReactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,8 +58,8 @@ public class FeedResponse {
         @Schema(description = "소비 내용", example = "신라방 마라탕")
         private String content;
 
-        @Schema(description = "이미지 URL", example = "https://example.com/image.jpg")
-        private String imageUrl;
+        @Schema(description = "이미지 URL 리스트", example = "[\"https://example.com/image1.jpg\", \"https://example.com/image2.jpg\"]")
+        private List<String> imageUrls;
 
         @Schema(description = "메모", example = "친구랑 같이 먹었어요!")
         private String memo;
@@ -79,7 +80,7 @@ public class FeedResponse {
         private Integer viewCount;
 
         @Schema(description = "현재 내가 누른 리액션 타입 (없으면 null)", example = "WISE")
-        private String myReaction;
+        private ReactionType myReaction;
 
     }
 

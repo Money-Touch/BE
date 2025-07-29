@@ -4,6 +4,7 @@ import com.server.money_touch.domain.consumptionRecord.dto.FeedRequest;
 import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
 import com.server.money_touch.domain.consumptionRecord.service.comment.CommentLikeService;
 import com.server.money_touch.domain.consumptionRecord.service.comment.CommentService;
+import com.server.money_touch.domain.consumptionRecord.service.feed.FeedService;
 import com.server.money_touch.domain.consumptionRecord.service.reaction.ReactionService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
@@ -32,6 +33,7 @@ public class FeedController {
     private final ReactionService reactionService;
     private final CommentService commentService;
     private final CommentLikeService commentLikeService;
+    private final FeedService feedService;
 
     // 피드 홈 (피드 리스트) 조회
     @Operation(
@@ -67,7 +69,7 @@ public class FeedController {
     })
     @GetMapping("/{consumptionRecordId}")
     public ApiResponse<FeedResponse.FeedDetailResultDTO> getFeedDetail(@PathVariable Long consumptionRecordId) {
-        FeedResponse.FeedDetailResultDTO response = FeedResponse.FeedDetailResultDTO.builder().build();
+        FeedResponse.FeedDetailResultDTO response = feedService.getFeedDetail(1L, consumptionRecordId);
         return ApiResponse.onSuccess(response);
     }
 
