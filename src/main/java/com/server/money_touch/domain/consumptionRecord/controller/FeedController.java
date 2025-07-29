@@ -19,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "피드 페이지", description = "피드 조회 API")
 @Slf4j
 @Validated
@@ -112,6 +114,25 @@ public class FeedController {
         FeedResponse.CommentResultDTO response = commentService.createComment(1L, consumptionRecordId, request);
         return ApiResponse.onSuccess(response);
     }
+
+    // 댓글 조회
+    @Operation(summary = "댓글 목록 조회 API", description = "특정 소비기록의 댓글과 대댓글 목록을 계층 구조로 반환합니다.")
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_RECORD_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
+    })
+    @Parameters({
+            @Parameter(name = "consumptionRecordId", description = "소비 기록 ID", example = "1", required = true)
+    })
+    @GetMapping("/{consumptionRecordId}/comments")
+    public ApiResponse<List<FeedResponse.CommentListDTO>> getComments(
+            @PathVariable Long consumptionRecordId
+    ) {
+        List<FeedResponse.CommentListDTO> response = commentService.getCommentList(1L, consumptionRecordId);
+        return ApiResponse.onSuccess(response);
+    }
+
 
     // 댓글 좋아요
     @Operation(

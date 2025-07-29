@@ -5,6 +5,7 @@ import com.server.money_touch.domain.consumptionRecord.dto.FeedRequest;
 import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
 import com.server.money_touch.domain.consumptionRecord.entity.Comment;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
+import com.server.money_touch.domain.consumptionRecord.repository.comment.CommentLikeRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.comment.CommentRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord.ConsumptionRecordRepository;
 import com.server.money_touch.domain.user.entity.User;
@@ -16,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,7 +28,9 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final ConsumptionRecordRepository consumptionRecordRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
+    // 댓글 작성
     @Override
     @Transactional
     public FeedResponse.CommentResultDTO createComment(Long userId, Long consumptionRecordId, FeedRequest.CommentCreateDTO request) {
@@ -78,5 +83,32 @@ public class CommentServiceImpl implements CommentService {
         return FeedResponse.CommentResultDTO.builder()
                 .commentId(comment.getId())
                 .build();
+    }
+
+    // 댓글 조회
+    @Override
+    public List<FeedResponse.CommentListDTO> getCommentList(Long userId, Long consumptionRecordId) {
+
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 소비기록 조회
+        ConsumptionRecord consumptionRecord = consumptionRecordRepository.findById(consumptionRecordId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.CONSUMPTION_RECORD_NOT_FOUND));
+
+        // 3. 소비기록이 공개된 경우에만 댓글 조회 가능
+        if (!consumptionRecord.isPublic()) {
+            throw new ErrorHandler(ErrorStatus.FORBIDDEN_ACCESS_ON_PRIVATE_FEED);
+        }
+
+        // 4. 해당 소비기록의 전체 댓글 목록 조회 (부모 → 자식 구조 포함)
+        List<Comment> parentComments = commentRepository.findAllByConsumptionRecordIdAndParentIsNullOrderByCreatedAtAsc(consumptionRecordId);
+
+        // 5. 현재 유저가 좋아요 누른 댓글 ID 목록 조회
+        List<Long> likedCommentIds = commentLikeRepository.findLikedCommentIdsByUserAndConsumptionRecord(user.getId(), consumptionRecordId);
+
+        // 6. DTO 변환
+        return CommentConverter.toCommentListDTOs(parentComments, likedCommentIds);
     }
 }
