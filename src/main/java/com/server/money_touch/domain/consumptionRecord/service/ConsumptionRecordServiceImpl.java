@@ -17,6 +17,7 @@ import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.apiPayload.exception.GeneralException;
+import com.server.money_touch.global.constants.DefaultCategoryConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,12 +111,22 @@ public class ConsumptionRecordServiceImpl implements ConsumptionRecordService{
 
         List<ConsumptionCategory> allCategories = consumptionCategoryRepository.findAllByUser(user);
 
+        // 순서 고정 리스트 사용
+        List<String> defaultOrder = DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES;
+
         return allCategories.stream()
                 .sorted(Comparator.comparingInt(cat -> {
                     CategoryType type = cat.getBudgetCategoryType();
-                    if (type == CategoryType.DEFAULT) return 0;
-                    if (type == CategoryType.CUSTOM) return 1;
-                    return 2; // ROUTINE_CATEGORY
+                    String name = cat.getBudgetCategoryName();
+
+                    if (type == CategoryType.DEFAULT) {
+                        int index = defaultOrder.indexOf(name);
+                        return index >= 0 ? index : Integer.MAX_VALUE;
+                    } else if (type == CategoryType.CUSTOM) {
+                        return 100; //
+                    } else {
+                        return 200; // ROUTINE_CATEGORY
+                    }
                 }))
                 .map(ConsumptionCategoryResponse.CategoryInfoDTO::fromEntity)
                 .collect(Collectors.toList());
