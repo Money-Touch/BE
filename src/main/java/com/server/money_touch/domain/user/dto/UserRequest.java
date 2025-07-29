@@ -11,7 +11,7 @@ import lombok.Setter;
 
 import java.util.List;
 
-public class UserRequest{
+public class    UserRequest{
 
     @Getter
     @Setter
@@ -49,9 +49,6 @@ public class UserRequest{
     @Schema(description = "로컬 회원가입 정보")
     public static class LocalSignUpDTO{
 
-        @Schema(description = "약관동의 리스트")
-        private List<AgreementDTO> agreeTerms;
-
         @Schema(description = "이메일", example = "example@naver.com")
         @Email(message = "올바른 이메일 형식이어야합니다")
         @NotBlank(message = "이메일은 필수입니다")
@@ -60,6 +57,14 @@ public class UserRequest{
         @Schema(description = "비밀번호", example = "12345678Abc@")
         @NotBlank(message = "비밀번호는 필수입니다")
         private String password;
+
+        @Schema(description = "약관동의 리스트")
+        private List<AgreementDTO> agreeTerms;
+
+        @Schema(description = "닉네임", example = "잔디")
+        @NotBlank
+        private String nickname;
+
     };
 
     @Getter
@@ -70,10 +75,13 @@ public class UserRequest{
 
         @Schema(description = "카카오 ID", example = "1234567890")
         @NotBlank(message = "카카오 사용자 ID는 필수입니다.")
-        private String kakaoId; // 카카오에서 받은 고유 식별자
+        private String kakaoKey; // 카카오에서 받은 고유 식별자
 
         @Schema(description = "약관동의 리스트")
         private List<AgreementDTO> agreeTerms;
+
+        @Schema(description = "닉네임", example = "잔디")
+        private String nickname;
 
         // 선택: 카카오에서 이메일을 제공한 경우
         @Schema(description = "이메일", example = "example@kakao.com")
@@ -90,9 +98,10 @@ public class UserRequest{
         @Email(message = "이메일 형식이 올바르지 않습니다")
         private String email;
 
-        @Schema(description = "비밀번호" , example = "12345678aB!")
+        @Schema(description = "비밀번호" , example = "12345678Abc@")
         @NotBlank(message = "비밀번호는 필수입니다")
         private String password;
+
     }
 
     @Getter
