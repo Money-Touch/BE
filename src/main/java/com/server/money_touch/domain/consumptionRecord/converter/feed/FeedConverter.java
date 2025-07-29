@@ -53,4 +53,12 @@ public class FeedConverter {
                 .budgetCategoryName(category.getBudgetCategoryName())
                 .build();
     }
+
+    // 조회수 증가 결과 반환
+    public static FeedResponse.ViewCountResultDTO toViewCountDTO(ConsumptionRecord record) {
+        return FeedResponse.ViewCountResultDTO.builder()
+                .consumptionRecordId(record.getId())
+                .viewCount(record.getViewCount())
+                .build();
+    }
 }

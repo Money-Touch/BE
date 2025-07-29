@@ -190,7 +190,7 @@ public class FeedController {
     // 피드 조회수 증가
     @Operation(
             summary = "피드 조회수 증가 API",
-            description = "피드를 조회할 때 조회수를 증가시키는 API입니다. 중복 조회는 제한됩니다. 공개된 소비 기록(가계부에만 등록하지 않은 소비기록)에 한해서만 가능합니다."
+            description = "피드를 조회할 때 조회수를 증가시키는 API입니다. 중복 조회도 가능합니다(중복 제한으로 수정이 필요할 것 같으면 말해주세요). 공개된 소비 기록(가계부에만 등록하지 않은 소비기록)에 한해서만 가능합니다."
     )
 //    @ApiSuccessCodeExample(resultClass = FeedResponse.ViewCountResultDTO.class)
     @ApiErrorCodeExamples({
@@ -207,7 +207,7 @@ public class FeedController {
 //            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long consumptionRecordId
     ) {
-        FeedResponse.ViewCountResultDTO response = FeedResponse.ViewCountResultDTO.builder().build();
+        FeedResponse.ViewCountResultDTO response =feedService.increaseFeedViewCount(1L, consumptionRecordId);
         return ApiResponse.onSuccess(response);
     }
 }
