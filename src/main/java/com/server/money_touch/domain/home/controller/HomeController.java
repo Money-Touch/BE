@@ -9,6 +9,7 @@ import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.apiPayload.exception.GeneralException;
 import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
 import com.server.money_touch.global.config.jwt.TokenProvider;
+import com.server.money_touch.global.utils.AuthUtil;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExamples;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +34,7 @@ public class HomeController {
 
     private final HomeService homeService;
     private final UserRepository userRepository;
-    private final TokenProvider tokenProvider;
+    private final AuthUtil authUtil;
 
     @Operation(
             summary = "소비 통계 조회 API",
@@ -47,12 +48,7 @@ public class HomeController {
     @GetMapping("/statistics")
     public ApiResponse<HomeResponse.ConsumptionStatisticsTopResponseDTO> getTopStatistics(HttpServletRequest servletrequest){
 
-
-        String token = TokenProvider.resolveToken(servletrequest);  // Authorization 헤더에서 토큰 추출
-        if (token == null) {
-            throw new ErrorHandler(ErrorStatus._BAD_REQUEST);  // or 인증 실패 예외
-        }
-        Long userId = tokenProvider.extractUserId(token);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new GeneralException(ErrorStatus.USER_NOT_FOUND));
         return ApiResponse.onSuccess(homeService.getTopStatistics(user));
@@ -72,11 +68,7 @@ public class HomeController {
     public ApiResponse<HomeResponse.OtherCategoryStatisticsResponseDTO> getOtherStatistics(HttpServletRequest servletrequest){
 
 
-        String token = TokenProvider.resolveToken(servletrequest);  // Authorization 헤더에서 토큰 추출
-        if (token == null) {
-            throw new ErrorHandler(ErrorStatus._BAD_REQUEST);  // or 인증 실패 예외
-        }
-        Long userId = tokenProvider.extractUserId(token);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new GeneralException(ErrorStatus.USER_NOT_FOUND));
         return ApiResponse.onSuccess(homeService.getOtherStatistics(user));
@@ -94,22 +86,16 @@ public class HomeController {
     @GetMapping("/ranking")
     public ApiResponse<HomeResponse.WiseRankingResponseDTO> getWiseRanking(HttpServletRequest servletrequest) {
 
-        String token = TokenProvider.resolveToken(servletrequest);  // Authorization 헤더에서 토큰 추출
-        if (token == null) {
-            throw new ErrorHandler(ErrorStatus._BAD_REQUEST);  // or 인증 실패 예외
-        }
-        Long userId = tokenProvider.extractUserId(token);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
 
-        // 임시 유저 지정
         return ApiResponse.onSuccess(homeService.getWeeklyWiseRanking(userId));
 
     }
 
     @Operation(
             summary = "소비 루틴 목록 5개 조회 API",
-            description = "사용자들이 등록한 소비 루틴들을 조회순 5개 보여줍니다.당일 등록된 루틴은 NEW 표시가 추가됩니다."+
-            "Try it out -> Execute 로 리스트 확인 가능합니다. " +
-            "임시 더미데이터 입력한 상태")
+            description = "사용자들이 등록한 소비 루틴들을 최신순으로 5개 보여줍니다.당일 등록된 루틴은 NEW 표시가 추가됩니다."+
+                        "낮 12시마다 갱신됩니다.")
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
@@ -118,37 +104,7 @@ public class HomeController {
     })
     @GetMapping("/routinesPreview")
     public ApiResponse<List<HomeResponse.RoutinePreviewDTO>> getRoutinePreviews() {
-
-        // TODO: 실제 데이터로 교체 예정. 임시 더미데이터
-        List<HomeResponse.RoutinePreviewDTO> routines = List.of(
-                new HomeResponse.RoutinePreviewDTO(
-                        1L, "https://",
-                        "50만원으로 한 달 살기 루틴",
-                        true
-                ),
-                new HomeResponse.RoutinePreviewDTO(
-                        2L,"https://",
-                        "배달 끊고 집밥 먹기 예산",
-                         true
-                ),
-                new HomeResponse.RoutinePreviewDTO(
-                        3L, "https://",
-                        "커피값을 아끼자",
-                        false
-                ),
-                new HomeResponse.RoutinePreviewDTO(
-                        4L, "https://",
-                        "쇼핑은 10만원만",
-                        false
-                ),
-                new HomeResponse.RoutinePreviewDTO(
-                        5L, "https://",
-                        "줄줄 새는 고정비 확인하기",
-                        false
-                )
-        );
-
-        return ApiResponse.onSuccess(routines);
+        return ApiResponse.onSuccess(homeService.getRoutinePreviewList());
     }
 
     @Operation(
@@ -158,6 +114,16 @@ public class HomeController {
     public ApiResponse<String> refreshWiseRankingManually() {
         homeService.calculateAndSaveWeeklyWiseRanking();
         return ApiResponse.onSuccess("주간 랭킹 수동 갱신 완료");
+    }
+
+    @Operation(
+            summary = "[관리자용] 소비 루틴 미리보기 캐시 수동 갱신 API",
+            description = "소비 루틴 미리보기 캐시를 강제로 갱신합니다. (매일 12시 스케줄 실행 전에도 사용 가능)"
+    )
+    @GetMapping("/routinesPreview/refresh")
+    public ApiResponse<String> refreshRoutinePreviewManually() {
+        homeService.refreshRoutinePreviewCache();
+        return ApiResponse.onSuccess("소비 루틴 미리보기 캐시 수동 갱신 완료");
     }
 
 }

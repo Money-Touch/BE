@@ -2,6 +2,7 @@ package com.server.money_touch.domain.routine.repository.routine;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.server.money_touch.domain.home.dto.HomeResponse;
 import com.server.money_touch.domain.routine.dto.RoutineResponse;
 import com.server.money_touch.domain.routine.entity.QRoutine;
 import com.server.money_touch.domain.routine.entity.QRoutineHashtag;
@@ -182,5 +183,23 @@ public class RoutineRepositoryImpl implements RoutineRepositoryCustom {
             });
         }
         return new SliceImpl<>(routines, pageable, hasNext);
+    }
+
+    @Override
+    public List<HomeResponse.RoutinePreviewDTO> findTop5LatestRoutines() {
+        LocalDate today = LocalDate.now();
+
+        List<HomeResponse.RoutinePreviewDTO> routines = queryFactory
+                .select(Projections.constructor(HomeResponse.RoutinePreviewDTO.class,
+                        routine.id,
+                        routine.routineName,
+                        routine.createdAt.stringValue().substring(0,10).eq(today.toString()) // 당일 등록 여부 체크
+                ))
+                .from(routine)
+                .orderBy(routine.createdAt.desc(), routine.id.desc())
+                .limit(5)
+                .fetch();
+
+        return routines;
     }
 }
