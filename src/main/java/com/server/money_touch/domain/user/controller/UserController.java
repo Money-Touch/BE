@@ -146,10 +146,9 @@ public class UserController{
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @GetMapping("/mypage")
-    public ApiResponse<UserResponse.MyPageResponseDTO> getMyPage(HttpServletRequest request) {
+    public ApiResponse<UserResponse.MyPageResponseDTO> getMyPage(HttpServletRequest servletrequest) {
 
-        Long userId = authUtil.getUserIdFromRequest(request);
-
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
         UserResponse.MyPageResponseDTO response = userQueryService.getMyPageInfo(userId);
         return ApiResponse.onSuccess(response);
     }

@@ -8,12 +8,14 @@ import com.server.money_touch.domain.consumptionRecord.service.feed.FeedService;
 import com.server.money_touch.domain.consumptionRecord.service.reaction.ReactionService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
+import com.server.money_touch.global.utils.AuthUtil;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExamples;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,7 @@ public class FeedController {
     private final CommentService commentService;
     private final CommentLikeService commentLikeService;
     private final FeedService feedService;
+    private final AuthUtil authUtil;
 
     // 피드 홈 (피드 리스트) 조회
     @Operation(
@@ -68,8 +71,11 @@ public class FeedController {
             @Parameter(name = "consumptionRecordId", description = "소비 기록 ID", example = "1", required = true)
     })
     @GetMapping("/{consumptionRecordId}")
-    public ApiResponse<FeedResponse.FeedDetailResultDTO> getFeedDetail(@PathVariable Long consumptionRecordId) {
-        FeedResponse.FeedDetailResultDTO response = feedService.getFeedDetail(1L, consumptionRecordId);
+    public ApiResponse<FeedResponse.FeedDetailResultDTO> getFeedDetail(
+            @PathVariable Long consumptionRecordId, HttpServletRequest servletrequest) {
+
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        FeedResponse.FeedDetailResultDTO response = feedService.getFeedDetail(userId, consumptionRecordId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -85,7 +91,9 @@ public class FeedController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @GetMapping("/my")
-    public ApiResponse<FeedResponse.FeedListResultDTO> getMyFeed(){
+    public ApiResponse<FeedResponse.FeedListResultDTO> getMyFeed(HttpServletRequest servletrequest){
+
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
         FeedResponse.FeedListResultDTO response = FeedResponse.FeedListResultDTO.builder().build();
         return ApiResponse.onSuccess(response);
     }
@@ -111,9 +119,10 @@ public class FeedController {
     @PostMapping("/{consumptionRecordId}/comment")
     public ApiResponse<FeedResponse.CommentResultDTO> createComment(
             @PathVariable Long consumptionRecordId,
-            @RequestBody @Valid FeedRequest.CommentCreateDTO request
+            @RequestBody @Valid FeedRequest.CommentCreateDTO request, HttpServletRequest servletrequest
     ) {
-        FeedResponse.CommentResultDTO response = commentService.createComment(1L, consumptionRecordId, request);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        FeedResponse.CommentResultDTO response = commentService.createComment(userId, consumptionRecordId, request);
         return ApiResponse.onSuccess(response);
     }
 
@@ -130,9 +139,10 @@ public class FeedController {
     })
     @GetMapping("/{consumptionRecordId}/comments")
     public ApiResponse<List<FeedResponse.CommentListDTO>> getComments(
-            @PathVariable Long consumptionRecordId
+            @PathVariable Long consumptionRecordId,  HttpServletRequest servletrequest
     ) {
-        List<FeedResponse.CommentListDTO> response = commentService.getCommentList(1L, consumptionRecordId);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        List<FeedResponse.CommentListDTO> response = commentService.getCommentList(userId, consumptionRecordId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -154,10 +164,10 @@ public class FeedController {
     })
     @PostMapping("/comment/{commentId}/like")
     public ApiResponse<FeedResponse.CommentLikeResultDTO> addOrRemoveCommentLike(
-//          @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @PathVariable Long commentId
+            @PathVariable Long commentId, HttpServletRequest servletrequest
     ) {
-        FeedResponse.CommentLikeResultDTO response = commentLikeService.addOrRemoveLike(1L, commentId);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        FeedResponse.CommentLikeResultDTO response = commentLikeService.addOrRemoveLike(userId, commentId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -179,11 +189,11 @@ public class FeedController {
     })
     @PostMapping("/{consumptionRecordId}/reaction")
     public ApiResponse<FeedResponse.ReactionResultDTO> addOrUpdateReaction(
-//            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long consumptionRecordId,
-            @RequestBody @Valid FeedRequest.ReactionCreateDTO request
+            @RequestBody @Valid FeedRequest.ReactionCreateDTO request, HttpServletRequest servletrequest
     ) {
-        FeedResponse.ReactionResultDTO response = reactionService.addOrUpdateReaction(1L, consumptionRecordId, request);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        FeedResponse.ReactionResultDTO response = reactionService.addOrUpdateReaction(userId, consumptionRecordId, request);
         return ApiResponse.onSuccess(response);
     }
 
@@ -204,10 +214,10 @@ public class FeedController {
     })
     @PatchMapping("/{consumptionRecordId}/view")
     public ApiResponse<FeedResponse.ViewCountResultDTO> increaseFeedViewCount(
-//            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @PathVariable Long consumptionRecordId
+            @PathVariable Long consumptionRecordId, HttpServletRequest servletrequest
     ) {
-        FeedResponse.ViewCountResultDTO response =feedService.increaseFeedViewCount(1L, consumptionRecordId);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        FeedResponse.ViewCountResultDTO response =feedService.increaseFeedViewCount(userId, consumptionRecordId);
         return ApiResponse.onSuccess(response);
     }
 }
