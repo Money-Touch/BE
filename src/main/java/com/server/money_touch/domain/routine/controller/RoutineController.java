@@ -10,6 +10,7 @@ import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
 import com.server.money_touch.global.config.jwt.TokenProvider;
 import com.server.money_touch.global.s3.S3Manager;
+import com.server.money_touch.global.utils.AuthUtil;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExamples;
 import com.server.money_touch.global.validation.annotation.ApiSuccessCodeExample;
@@ -37,7 +38,7 @@ public class RoutineController {
     private final RoutineCommandService routineCommandService;
     private final RoutineQueryService routineQueryService;
     private final S3Manager s3Manager;
-    private final TokenProvider tokenProvider;
+    private final AuthUtil authUtil;
 
     // 소비 루틴 등록
     @Operation(
@@ -61,11 +62,7 @@ public class RoutineController {
     public ApiResponse<RoutineResponse.RoutineCreateResultDTO> postRoutine(@Valid @RequestBody RoutineRequest.RoutineCreateDTO request,
                                                                            @PathVariable Long budgetId, HttpServletRequest servletrequest) {
 
-        String token = TokenProvider.resolveToken(servletrequest);  // Authorization 헤더에서 토큰 추출
-        if (token == null) {
-            throw new ErrorHandler(ErrorStatus._BAD_REQUEST);  // or 인증 실패 예외
-        }
-        Long userId = tokenProvider.extractUserId(token);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
 
         RoutineResponse.RoutineCreateResultDTO response = routineCommandService.saveRoutineWithRoutineHashtags(userId, budgetId, request);
         return ApiResponse.onSuccess(response);
@@ -168,11 +165,7 @@ public class RoutineController {
     @GetMapping("/list/{routineId}")
     public ApiResponse<RoutineResponse.RoutineListDetailDTO> getOtherDetailRoutine(@PathVariable Long routineId, HttpServletRequest servletrequest) {
 
-        String token = TokenProvider.resolveToken(servletrequest);  // Authorization 헤더에서 토큰 추출
-        if (token == null) {
-            throw new ErrorHandler(ErrorStatus._BAD_REQUEST);  // or 인증 실패 예외
-        }
-        Long userId = tokenProvider.extractUserId(token);
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
 
         RoutineResponse.RoutineListDetailDTO response = routineQueryService.getOtherRoutineDetail(userId, routineId);
         return ApiResponse.onSuccess(response);
