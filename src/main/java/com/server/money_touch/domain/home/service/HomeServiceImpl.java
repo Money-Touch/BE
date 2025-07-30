@@ -5,11 +5,13 @@ import com.server.money_touch.domain.consumptionRecord.repository.consumptionRec
 import com.server.money_touch.domain.home.dto.HomeResponse;
 import com.server.money_touch.domain.home.entity.WiseRankingHistory;
 import com.server.money_touch.domain.home.repository.WiseRankingHistoryRepository;
+import com.server.money_touch.domain.routine.repository.routine.RoutineRepository;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HomeServiceImpl implements HomeService {
@@ -25,6 +28,8 @@ public class HomeServiceImpl implements HomeService {
     private final UserRepository userRepository;
     private final ConsumptionRecordRepository consumptionRecordRepository;
     private final WiseRankingHistoryRepository wiseRankingHistoryRepository;
+    private final RoutineRepository routineRepository;
+    private List<HomeResponse.RoutinePreviewDTO> cachedRoutinePreviews = new ArrayList<>();
 
     @Override
     @Transactional
@@ -255,6 +260,19 @@ public class HomeServiceImpl implements HomeService {
         }
 
         return new HomeResponse.OtherCategoryStatisticsResponseDTO(othersList);
+    }
+
+    /** 스케줄러에서 호출: 최신 5개 DB조회 → 캐싱 */
+    public void refreshRoutinePreviewCache() {
+        cachedRoutinePreviews = routineRepository.findTop5LatestRoutines();
+        log.info("소비 루틴 최신 5개 캐시 갱신 완료, size={}", cachedRoutinePreviews.size());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HomeResponse.RoutinePreviewDTO> getRoutinePreviewList() {
+        // DB 직접 조회 대신 캐시 반환
+        return cachedRoutinePreviews;
     }
 }
 

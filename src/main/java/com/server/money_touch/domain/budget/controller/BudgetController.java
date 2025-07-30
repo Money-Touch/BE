@@ -6,6 +6,9 @@ import com.server.money_touch.domain.budget.service.budget.BudgetCommandService;
 import com.server.money_touch.domain.budget.service.budget.BudgetQueryService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
+import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
+import com.server.money_touch.global.config.jwt.TokenProvider;
+import com.server.money_touch.global.utils.AuthUtil;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExamples;
 import com.server.money_touch.global.validation.annotation.ApiSuccessCodeExample;
@@ -13,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +33,7 @@ public class BudgetController {
 
     private final BudgetCommandService budgetCommandService;
     private final BudgetQueryService budgetQueryService;
+    private final AuthUtil authUtil;
 
     // 가계부 한 달 예산 등록
     @Operation(
@@ -47,9 +52,12 @@ public class BudgetController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
     @PostMapping()
-    public ApiResponse<BudgetResponse.BudgetCreateResultDTO> postBudget(@Valid @RequestBody BudgetRequest.BudgetCreateDTO request) {
-        // 로그인 전까지 userId 1로 임시 세팅
-        BudgetResponse.BudgetCreateResultDTO response = budgetCommandService.saveOrUpdateBudgetWithCategories(1L, request);
+    public ApiResponse<BudgetResponse.BudgetCreateResultDTO> postBudget(@Valid @RequestBody BudgetRequest.BudgetCreateDTO request,
+                                                                        HttpServletRequest servletrequest) {
+
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+
+        BudgetResponse.BudgetCreateResultDTO response = budgetCommandService.saveOrUpdateBudgetWithCategories(userId, request);
         return ApiResponse.onSuccess(response);
     }
 

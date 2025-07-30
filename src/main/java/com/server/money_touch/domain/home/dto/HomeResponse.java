@@ -96,14 +96,11 @@ public class HomeResponse {
 
     @Getter
     @AllArgsConstructor
-    @Schema(description = "소비 루틴 조회순 5개")
+    @Schema(description = "소비 루틴 최신순 5개")
     public static class RoutinePreviewDTO {
 
         @Schema(description = "소비 루틴 id", example = "1")
         private Long routineId;
-
-        @Schema(description = "아이콘 이미지", example = "https://")
-        private String iconImgUrl;
 
         @Schema(description = "루틴 이름", example = "50만원으로 한 달 살기 루틴")
         private String routineName;
@@ -111,6 +108,5 @@ public class HomeResponse {
         @Schema(description = "당일 등록 여부", example = "true")
         private boolean isNew;
     }
-
 
 }
