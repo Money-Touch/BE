@@ -30,7 +30,7 @@ public class Notification extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String title;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 70)
     private String content;
 
     private Boolean isRead = false;
