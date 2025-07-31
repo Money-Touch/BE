@@ -4,6 +4,7 @@ import com.server.money_touch.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/test/s3")
@@ -24,8 +26,9 @@ public class S3testController {
     /*consumes ~, @RequestParam ~ , String url = ~ 작성해야 업로드 가능. dir 은 저장 폴더명입니다.
     프로필 이미지라면 dirName: "profile", 소비 루틴 기록 이미지라면 "record" 라고 작성하는 것을 추천드립니다.*/
 
-    public ApiResponse<String> uploadTest(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public ApiResponse<String> uploadTest(@RequestParam("file") MultipartFile file) {
         try {
+            log.info("test");
             String url = s3Manager.upload(file, "profile");
             return ApiResponse.onSuccess(url);
         } catch (Exception e) {
