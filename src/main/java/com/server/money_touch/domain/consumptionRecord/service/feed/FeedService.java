@@ -15,6 +15,9 @@ public interface FeedService {
     // 피드 리스트 조회
     FeedResponse.FeedListResultDTO getFeedsByCursor(Long userId, FeedSortType sortType, Long cursorId, Integer cursorViewCount);
 
+    // 유저명으로 피드 검색
+    FeedResponse.FeedListResultDTO searchFeedsByUserNickname(String keyword, Long cursorId, Long userId);
+
     // 나의 피드 리스트 조회
     FeedResponse.MyFeedListResultDTO getMyFeedsByCursor(Long userId, MyFeedViewType viewMode, Long cursorId);
 }

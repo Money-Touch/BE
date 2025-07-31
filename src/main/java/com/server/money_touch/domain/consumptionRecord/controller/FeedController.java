@@ -123,6 +123,37 @@ public class FeedController {
         return ApiResponse.onSuccess(response);
     }
 
+    // 마이페이지 - 내 피드 모아보기
+    @Operation(
+            summary = "유저 닉네임 기반 게시글 검색 API",
+            description = "유저 닉네임에 키워드가 포함된 게시글을 검색하는 API입니다.\n"
+                    + "- 검색 대상: 공개된 소비 기록만 조회됩니다.\n"
+                    + "- 검색 조건: 사용자 닉네임에 키워드가 포함될 경우 해당 사용자의 게시글을 반환합니다.\n"
+                    + "- 정렬: 최신순으로 정렬됩니다.\n"
+                    + "- 커서 기반 무한스크롤 방식 지원 (cursorId 파라미터 사용)\n\n"
+                    + "✅ 예시\n"
+                    + "- keyword = \"유\" → 닉네임이 \"유진\", \"김유라\", \"유리\" 등인 유저의 게시글 반환\n"
+                    + "- cursorId = null → 첫 페이지 요청\n"
+                    + "- cursorId = 18 → ID가 18보다 작은 게시글부터 다음 페이지 조회"
+    )
+
+//    @ApiSuccessCodeExample(resultClass = FeedResponse.FeedListResultDTO.class)
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
+    })
+    @GetMapping("/search")
+    public ApiResponse<FeedResponse.FeedListResultDTO> searchFeeds(
+            HttpServletRequest servletrequest,
+            @RequestParam String keyword,
+            @RequestParam(required = false) Long cursorId
+    ){
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        FeedResponse.FeedListResultDTO response = feedService.searchFeedsByUserNickname(keyword, cursorId, userId);
+        return ApiResponse.onSuccess(response);
+    }
+
     // 댓글 등록
     @Operation(
             summary = "댓글 등록 API",

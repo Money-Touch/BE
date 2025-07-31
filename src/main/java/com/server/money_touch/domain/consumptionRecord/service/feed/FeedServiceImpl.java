@@ -136,6 +136,39 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
+    public FeedResponse.FeedListResultDTO searchFeedsByUserNickname(String keyword, Long cursorId, Long userId) {
+
+        // 1. 사용자 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(0, PAGE_SIZE);
+
+        // 2. 피드 검색 (닉네임 포함 검색)
+        Slice<ConsumptionRecord> recordSlice = feedRepository.searchFeedsByUserNickname(
+                keyword,
+                cursorId,
+                pageable
+        );
+
+        // 3. 리액션 정보 조회
+        List<Long> recordIds = recordSlice.getContent().stream()
+                .map(ConsumptionRecord::getId)
+                .toList();
+
+        Map<Long, ReactionType> myReactions = reactionRepository
+                .findByUserAndPublicConsumptionRecordIds(user, recordIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        r -> r.getConsumptionRecord().getId(),
+                        Reaction::getType
+                ));
+
+        // 4. 변환 및 응답
+        return FeedConverter.toFeedListDTO(recordSlice, myReactions);
+    }
+
+    @Override
     public FeedResponse.MyFeedListResultDTO getMyFeedsByCursor(
             Long userId,
             MyFeedViewType viewMode,
