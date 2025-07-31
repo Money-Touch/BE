@@ -1,17 +1,19 @@
 package com.server.money_touch.domain.user.controller;
 
+import com.server.money_touch.domain.badge.service.BadgeCommandService;
 import com.server.money_touch.domain.user.dto.UserRequest;
 import com.server.money_touch.domain.user.dto.UserResponse;
-import com.server.money_touch.domain.badge.service.BadgeCommandService;
-import com.server.money_touch.domain.user.service.user.UserQueryService;
 import com.server.money_touch.domain.user.service.user.UserCommandService;
+import com.server.money_touch.domain.user.service.user.UserQueryService;
 import com.server.money_touch.global.apiPayload.ApiResponse;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
+import com.server.money_touch.global.utils.AuthUtil;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExample;
 import com.server.money_touch.global.validation.annotation.ApiErrorCodeExamples;
 import com.server.money_touch.global.validation.annotation.ApiSuccessCodeExample;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ public class UserController{
     private final BadgeCommandService badgeCommandService;
     private final UserQueryService userQueryService;
     private final UserCommandService userCommandService;
+    private final AuthUtil authUtil;
 
     @Operation(
             summary = "유저 상세정보 저장 API",
@@ -97,13 +100,16 @@ public class UserController{
     )
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "BADGE_NOT_EARNED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_UNAUTHORIZED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @GetMapping("/mypage")
-    public ApiResponse<UserResponse.MyPageResponseDTO> getMyPage() {
-        UserResponse.MyPageResponseDTO response = UserResponse.MyPageResponseDTO.builder().build();
+    public ApiResponse<UserResponse.MyPageResponseDTO> getMyPage(HttpServletRequest servletrequest) {
+
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        UserResponse.MyPageResponseDTO response = userQueryService.getMyPageInfo(userId);
         return ApiResponse.onSuccess(response);
     }
 
