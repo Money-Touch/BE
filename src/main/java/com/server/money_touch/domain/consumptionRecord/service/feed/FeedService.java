@@ -1,6 +1,8 @@
 package com.server.money_touch.domain.consumptionRecord.service.feed;
 
 import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
+import com.server.money_touch.domain.consumptionRecord.enums.FeedSortType;
+import com.server.money_touch.domain.consumptionRecord.enums.MyFeedViewType;
 
 public interface FeedService {
 
@@ -9,4 +11,13 @@ public interface FeedService {
 
     // 피드 조회수 증가
     FeedResponse.ViewCountResultDTO increaseFeedViewCount(Long userId, Long consumptionRecordId);
+
+    // 피드 리스트 조회
+    FeedResponse.FeedListResultDTO getFeedsByCursor(Long userId, FeedSortType sortType, Long cursorId, Integer cursorViewCount);
+
+    // 유저명으로 피드 검색
+    FeedResponse.FeedListResultDTO searchFeedsByUserNickname(String keyword, Long cursorId, Long userId);
+
+    // 나의 피드 리스트 조회
+    FeedResponse.MyFeedListResultDTO getMyFeedsByCursor(Long userId, MyFeedViewType viewMode, Long cursorId);
 }

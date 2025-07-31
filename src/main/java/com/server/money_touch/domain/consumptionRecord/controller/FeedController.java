@@ -2,6 +2,8 @@ package com.server.money_touch.domain.consumptionRecord.controller;
 
 import com.server.money_touch.domain.consumptionRecord.dto.FeedRequest;
 import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
+import com.server.money_touch.domain.consumptionRecord.enums.FeedSortType;
+import com.server.money_touch.domain.consumptionRecord.enums.MyFeedViewType;
 import com.server.money_touch.domain.consumptionRecord.service.comment.CommentLikeService;
 import com.server.money_touch.domain.consumptionRecord.service.comment.CommentService;
 import com.server.money_touch.domain.consumptionRecord.service.feed.FeedService;
@@ -41,17 +43,35 @@ public class FeedController {
     // 피드 홈 (피드 리스트) 조회
     @Operation(
             summary = "피드 홈(피드 리스트) API",
-            description = "공개된 소비 기록(가계부에만 등록하지 않은 소비기록) 피드를 조회하는 API입니다"
+            description = """
+            공개된 소비기록(가계부에만 등록하지 않은 소비기록) 피드를 커서 기반 무한스크롤 방식으로 조회합니다.
+
+            정렬 방식:
+            - RECENT (기본값): 가장 최근에 생성된 게시물부터 정렬됩니다. (ID 내림차순)
+            - POPULAR: 조회수가 높은 게시물부터 정렬됩니다. 조회수가 같을 경우 ID가 더 큰 게시물이 우선입니다.
+
+            커서 방식:
+            - 최신순(RECENT)일 경우 → cursorId 사용
+            - 조회수순(POPULAR)일 경우 → cursorViewCount + cursorId 함께 사용
+            """
     )
-//        @ApiSuccessCodeExample(resultClass = NotificationResponse.NotificationListDTO.class)
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
     @GetMapping("/home")
-    public ApiResponse<FeedResponse.FeedListResultDTO> getFeedList() {
-        FeedResponse.FeedListResultDTO response = FeedResponse.FeedListResultDTO.builder().build();
+    public ApiResponse<FeedResponse.FeedListResultDTO> getFeedList(
+            HttpServletRequest request,
+            @RequestParam(name = "sortType", defaultValue = "RECENT") FeedSortType sortType,
+            @RequestParam(name = "cursorId", required = false) Long cursorId,
+            @RequestParam(name = "cursorViewCount", required = false) Integer cursorViewCount
+    ) {
+        Long userId = authUtil.getUserIdFromRequest(request);
+
+        FeedResponse.FeedListResultDTO response =
+                feedService.getFeedsByCursor(userId, sortType, cursorId, cursorViewCount);
+
         return ApiResponse.onSuccess(response);
     }
 
@@ -82,7 +102,11 @@ public class FeedController {
     // 마이페이지 - 내 피드 모아보기
     @Operation(
             summary = "내 피드 조회 API",
-            description = "마이페이지에 있는 My 피드를 눌러 현재 사용자의 소비 기록 피드를 조회하는 API 입니다."
+            description = "마이페이지에 있는 My 피드를 눌러 현재 사용자의 소비 기록 피드를 조회하는 API 입니다." +
+                    "- viewMode에 따라 카드형(CARD) 또는 리스트형(LIST)으로 데이터를 반환합니다. \n" +
+                    "   - 카드형(CARD): pagesize : 20" +
+                    "   - 리스트형(LIST): pagesize : 5" +
+                    "- 커서 기반 무한 스크롤 방식으로 페이징되며, cursorId가 없는 경우 첫 페이지로 간주됩니다."
     )
 //    @ApiSuccessCodeExample(resultClass = FeedResponse.FeedListResultDTO.class)
     @ApiErrorCodeExamples({
@@ -91,10 +115,44 @@ public class FeedController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @GetMapping("/my")
-    public ApiResponse<FeedResponse.FeedListResultDTO> getMyFeed(HttpServletRequest servletrequest){
-
+    public ApiResponse<FeedResponse.MyFeedListResultDTO> getMyFeed(
+            HttpServletRequest servletrequest,
+            @RequestParam(name = "viewMode") MyFeedViewType viewMode,
+            @RequestParam(name = "cursorId", required = false) Long cursorId
+    ){
         Long userId = authUtil.getUserIdFromRequest(servletrequest);
-        FeedResponse.FeedListResultDTO response = FeedResponse.FeedListResultDTO.builder().build();
+        FeedResponse.MyFeedListResultDTO response =feedService.getMyFeedsByCursor(userId, viewMode, cursorId);
+        return ApiResponse.onSuccess(response);
+    }
+
+    // 마이페이지 - 내 피드 모아보기
+    @Operation(
+            summary = "유저 닉네임 기반 게시글 검색 API",
+            description = "유저 닉네임에 키워드가 포함된 게시글을 검색하는 API입니다.\n"
+                    + "- 검색 대상: 공개된 소비 기록만 조회됩니다.\n"
+                    + "- 검색 조건: 사용자 닉네임에 키워드가 포함될 경우 해당 사용자의 게시글을 반환합니다.\n"
+                    + "- 정렬: 최신순으로 정렬됩니다.\n"
+                    + "- 커서 기반 무한스크롤 방식 지원 (cursorId 파라미터 사용)\n\n"
+                    + "✅ 예시\n"
+                    + "- keyword = \"유\" → 닉네임이 \"유진\", \"김유라\", \"유리\" 등인 유저의 게시글 반환\n"
+                    + "- cursorId = null → 첫 페이지 요청\n"
+                    + "- cursorId = 18 → ID가 18보다 작은 게시글부터 다음 페이지 조회"
+    )
+
+//    @ApiSuccessCodeExample(resultClass = FeedResponse.FeedListResultDTO.class)
+    @ApiErrorCodeExamples({
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
+    })
+    @GetMapping("/search")
+    public ApiResponse<FeedResponse.FeedListResultDTO> searchFeeds(
+            HttpServletRequest servletrequest,
+            @RequestParam String keyword,
+            @RequestParam(required = false) Long cursorId
+    ){
+        Long userId = authUtil.getUserIdFromRequest(servletrequest);
+        FeedResponse.FeedListResultDTO response = feedService.searchFeedsByUserNickname(keyword, cursorId, userId);
         return ApiResponse.onSuccess(response);
     }
 
