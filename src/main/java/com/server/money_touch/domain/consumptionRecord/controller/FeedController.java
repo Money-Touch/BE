@@ -166,7 +166,6 @@ public class FeedController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_RECORD_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "PARENT_COMMENT_NOT_FOUND"),
-            @ApiErrorCodeExample(value = ErrorStatus.class, name = "FORBIDDEN_ACCESS_ON_PRIVATE_FEED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "NESTED_REPLY_NOT_ALLOWED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
