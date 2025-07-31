@@ -2,6 +2,7 @@ package com.server.money_touch.domain.consumptionRecord.service.feed;
 
 import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
 import com.server.money_touch.domain.consumptionRecord.enums.FeedSortType;
+import com.server.money_touch.domain.consumptionRecord.enums.MyFeedViewType;
 
 public interface FeedService {
 
@@ -13,4 +14,7 @@ public interface FeedService {
 
     // 피드 리스트 조회
     FeedResponse.FeedListResultDTO getFeedsByCursor(Long userId, FeedSortType sortType, Long cursorId, Integer cursorViewCount);
+
+    // 나의 피드 리스트 조회
+    FeedResponse.MyFeedListResultDTO getMyFeedsByCursor(Long userId, MyFeedViewType viewMode, Long cursorId);
 }

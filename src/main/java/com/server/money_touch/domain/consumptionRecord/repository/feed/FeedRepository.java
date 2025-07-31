@@ -43,4 +43,20 @@ public interface FeedRepository extends JpaRepository<ConsumptionRecord, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    // 나의 피드 조회 (최신순 정렬)
+    @Query("""
+    SELECT cr FROM ConsumptionRecord cr
+    WHERE cr.user.id = :userId
+      AND (:cursorId IS NULL OR cr.id < :cursorId)
+      AND cr.isPublic = true
+    ORDER BY cr.id DESC
+""")
+    Slice<ConsumptionRecord> findMyFeedsByCursorOrderByIdDesc(
+            @Param("userId") Long userId,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+
 }

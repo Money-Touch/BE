@@ -5,6 +5,7 @@ import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
 import com.server.money_touch.domain.consumptionRecord.entity.Reaction;
 import com.server.money_touch.domain.consumptionRecord.enums.FeedSortType;
+import com.server.money_touch.domain.consumptionRecord.enums.MyFeedViewType;
 import com.server.money_touch.domain.consumptionRecord.enums.ReactionType;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord.ConsumptionRecordRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.feed.FeedRepository;
@@ -132,4 +133,36 @@ public class FeedServiceImpl implements FeedService {
                 ));
 
         return FeedConverter.toFeedListDTO(recordSlice, myReactions);
-    }}
+    }
+
+    @Override
+    public FeedResponse.MyFeedListResultDTO getMyFeedsByCursor(
+            Long userId,
+            MyFeedViewType viewMode,
+            Long cursorId
+    ) {
+        // 1. 사용자 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. viewMode에 따라 pageSize 다르게 설정
+        int pageSize = switch (viewMode) {
+            case CARD -> 20;
+            case LIST -> 5;
+        };
+
+        Pageable pageable = PageRequest.of(0, pageSize);
+
+        // 3. 피드 조회
+        Slice<ConsumptionRecord> slice = feedRepository.findMyFeedsByCursorOrderByIdDesc(
+                user.getId(),
+                cursorId,
+                pageable
+                );
+
+        // 4. 변환
+        return FeedConverter.toMyFeedListDTO(slice);
+    }
+
+}
+

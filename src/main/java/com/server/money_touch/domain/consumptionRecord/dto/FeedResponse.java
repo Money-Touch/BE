@@ -20,16 +20,16 @@ public class FeedResponse {
     public static class FeedListResultDTO {
 
         @Schema(description = "게시글 목록")
-        List<FeedListItemDTO> feedList;
+        private List<FeedListItemDTO> feedList;
 
-        @Schema(description = "현재 페이지의 알림 개수", example = "10")
-        Integer FeedListSize;
+        @Schema(description = "현재 페이지의 게시글 개수", example = "10")
+        private Integer FeedListSize;
 
         @Schema(description = "페이지 처음 여부", example = "true")
-        Boolean isFirst;
+        private Boolean isFirst;
 
         @Schema(description = "다음 페이지가 있는지 여부", example = "true")
-        Boolean hasNext;
+        private Boolean hasNext;
 
         @Schema(description = "다음 커서 ID (무한스크롤용)", example = "1")
         private Long nextCursorId;
@@ -71,6 +71,55 @@ public class FeedResponse {
         private ReactionType myReaction;
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "나의 피드 리스트 응답")
+    public static class MyFeedListResultDTO {
+
+        @Schema(description = "게시글 목록")
+        private List<MyFeedItemDTO> feedList;
+
+        @Schema(description = "현재 페이지의 게시글 개수", example = "10")
+        private Integer FeedListSize;
+
+        @Schema(description = "페이지 처음 여부", example = "true")
+        private Boolean isFirst;
+
+        @Schema(description = "다음 페이지가 있는지 여부", example = "true")
+        private Boolean hasNext;
+
+        @Schema(description = "다음 커서 ID (무한스크롤용)", example = "1")
+        private Long nextCursorId;
+
+        @Schema(description = "다음 커서 조회수", example = "20")
+        private Integer nextCursorViewCount;
+
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "나의 피드 아이템")
+    public static class MyFeedItemDTO {
+
+        @Schema(description = "소비기록 ID", example = "1")
+        private Long consumptionRecordId;
+
+        @Schema(description = "사용자 ID", example = "1")
+        private Long userId;
+
+        @Schema(description = "이미지 URL 리스트", example = "[\"https://example.com/image1.jpg\", \"https://example.com/image2.jpg\"]")
+        private List<String> imageUrls;
+
+        @Schema(description = "소비 금액", example = "12000")
+        private int amount;
+
+        @Schema(description = "소비 내용", example = "신라방 마라탕")
+        private String content;
+    }
 
     @Builder
     @Getter

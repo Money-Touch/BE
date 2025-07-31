@@ -100,6 +100,47 @@ public class FeedConverter {
                 .build();
     }
 
+    public static FeedResponse.MyFeedListResultDTO toMyFeedListDTO(Slice<ConsumptionRecord> slice) {
+        if (slice == null || slice.isEmpty()) {
+            return FeedResponse.MyFeedListResultDTO.builder()
+                    .feedList(List.of())
+                    .FeedListSize(0)
+                    .isFirst(true)
+                    .hasNext(false)
+                    .nextCursorId(null)
+                    .build();
+        }
+
+        // 각 ConsumptionRecord를 MyFeedItemDTO로 변환
+        List<FeedResponse.MyFeedItemDTO> items = slice.getContent().stream()
+                .map(record -> FeedResponse.MyFeedItemDTO.builder()
+                        .consumptionRecordId(record.getId())
+                        .userId(record.getUser().getId())
+                        .imageUrls(record.getImages().stream()
+                                .map(ConsumptionRecordImage::getFilePath)
+                                .collect(Collectors.toList()))
+                        .content(record.getContent())
+                        .amount(record.getAmount())
+                        .build()
+                ).toList();
+
+        // 다음 커서 ID 설정
+        Long nextCursorId = null;
+        if (slice.hasNext() && !items.isEmpty()) {
+            ConsumptionRecord lastRecord = slice.getContent().get(slice.getContent().size() - 1);
+            nextCursorId = lastRecord.getId();
+        }
+
+        return FeedResponse.MyFeedListResultDTO.builder()
+                .feedList(items)
+                .FeedListSize(items.size())
+                .isFirst(slice.isFirst())
+                .hasNext(slice.hasNext())
+                .nextCursorId(nextCursorId)
+                .build();
+    }
+
+
     // 사용자 정보 반환
     public static FeedResponse.UserInfo toUserInfo(User user) {
         return FeedResponse.UserInfo.builder()

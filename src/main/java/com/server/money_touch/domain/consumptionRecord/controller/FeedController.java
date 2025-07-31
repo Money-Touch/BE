@@ -3,6 +3,7 @@ package com.server.money_touch.domain.consumptionRecord.controller;
 import com.server.money_touch.domain.consumptionRecord.dto.FeedRequest;
 import com.server.money_touch.domain.consumptionRecord.dto.FeedResponse;
 import com.server.money_touch.domain.consumptionRecord.enums.FeedSortType;
+import com.server.money_touch.domain.consumptionRecord.enums.MyFeedViewType;
 import com.server.money_touch.domain.consumptionRecord.service.comment.CommentLikeService;
 import com.server.money_touch.domain.consumptionRecord.service.comment.CommentService;
 import com.server.money_touch.domain.consumptionRecord.service.feed.FeedService;
@@ -101,7 +102,9 @@ public class FeedController {
     // 마이페이지 - 내 피드 모아보기
     @Operation(
             summary = "내 피드 조회 API",
-            description = "마이페이지에 있는 My 피드를 눌러 현재 사용자의 소비 기록 피드를 조회하는 API 입니다."
+            description = "마이페이지에 있는 My 피드를 눌러 현재 사용자의 소비 기록 피드를 조회하는 API 입니다." +
+                    "- viewMode에 따라 카드형(CARD) 또는 리스트형(LIST)으로 데이터를 반환합니다.\n" +
+                    "- 커서 기반 무한 스크롤 방식으로 페이징되며, cursorId가 없는 경우 첫 페이지로 간주됩니다."
     )
 //    @ApiSuccessCodeExample(resultClass = FeedResponse.FeedListResultDTO.class)
     @ApiErrorCodeExamples({
@@ -110,10 +113,13 @@ public class FeedController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @GetMapping("/my")
-    public ApiResponse<FeedResponse.FeedListResultDTO> getMyFeed(HttpServletRequest servletrequest){
-
+    public ApiResponse<FeedResponse.MyFeedListResultDTO> getMyFeed(
+            HttpServletRequest servletrequest,
+            @RequestParam(name = "viewMode") MyFeedViewType viewMode,
+            @RequestParam(name = "cursorId", required = false) Long cursorId
+    ){
         Long userId = authUtil.getUserIdFromRequest(servletrequest);
-        FeedResponse.FeedListResultDTO response = FeedResponse.FeedListResultDTO.builder().build();
+        FeedResponse.MyFeedListResultDTO response =feedService.getMyFeedsByCursor(userId, viewMode, cursorId);
         return ApiResponse.onSuccess(response);
     }
 
