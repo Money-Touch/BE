@@ -103,7 +103,9 @@ public class FeedController {
     @Operation(
             summary = "내 피드 조회 API",
             description = "마이페이지에 있는 My 피드를 눌러 현재 사용자의 소비 기록 피드를 조회하는 API 입니다." +
-                    "- viewMode에 따라 카드형(CARD) 또는 리스트형(LIST)으로 데이터를 반환합니다.\n" +
+                    "- viewMode에 따라 카드형(CARD) 또는 리스트형(LIST)으로 데이터를 반환합니다. \n" +
+                    "   - 카드형(CARD): pagesize : 20" +
+                    "   - 리스트형(LIST): pagesize : 5" +
                     "- 커서 기반 무한 스크롤 방식으로 페이징되며, cursorId가 없는 경우 첫 페이지로 간주됩니다."
     )
 //    @ApiSuccessCodeExample(resultClass = FeedResponse.FeedListResultDTO.class)
