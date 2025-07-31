@@ -35,7 +35,7 @@ public class FeedServiceImpl implements FeedService {
     private final ReactionRepository reactionRepository;
     private final UserRepository userRepository;
     private final ConsumptionRecordRepository consumptionRecordRepository;
-    private static final int PAGE_SIZE = 2;
+    private static final int PAGE_SIZE = 5;
 
     /**
      * 피드 상세 조회
