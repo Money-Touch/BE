@@ -57,6 +57,14 @@ public class UserConverter {
         return user;
     }
 
+    // ✅ 새로 추가: User를 UserCreateResultDTO로 변환
+    public static UserResponse.UserCreateResultDTO toUserCreateResultDTO(User user) {
+        return UserResponse.UserCreateResultDTO.builder()
+                .userId(user.getId())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
     /**
      * UserDetail 생성
      */
