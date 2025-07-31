@@ -102,6 +102,14 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
             }
         });
 
+        // 8-1. 요청에 포함되지 않은 소비 카테고리 존재 시 예외 처리 (Stream 방식)
+        budgetCategoryMap.keySet().stream()
+                .filter(categoryName -> !requestMap.containsKey(categoryName))
+                .findFirst()
+                .ifPresent(missing -> {
+                    throw new ErrorHandler(CONSUMPTION_CATEGORY_NAME_MISSING_IN_REQUEST);
+                });
+
         // 9. 소비 루틴 저장
         Routine routine = RoutineConverter.toRoutine(user, budget, request);
         routineRepository.save(routine);

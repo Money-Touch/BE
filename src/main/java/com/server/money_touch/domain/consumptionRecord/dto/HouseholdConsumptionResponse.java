@@ -161,41 +161,29 @@ public class HouseholdConsumptionResponse {
     @Getter
     @Builder
     @AllArgsConstructor
-    @Schema(description = "달력 특정 날짜의 소비 상세 내역", example = """
-{
-  "date": "2025-07-23",
-  "items": [
-    {
-      "consumptionRecordId": 1,
-      "categoryName": "카페",
-      "content": "스타벅스",
-      "amount": 5000
-    },
-    {
-      "consumptionRecordId": 2,
-      "categoryName": "편의점",
-      "content": "CU",
-      "amount": 3500
-    },
-    {
-      "consumptionRecordId": 3,
-      "categoryName": "교통",
-      "content": "버스",
-      "amount": 7000
-    }
-  ],
-  "itemSize": 3
-}
-""")    public static  class CalendarDailyConsumeDetailDTO {
+    @Schema(description = "달력 - 특정 날짜 소비 내역 커서 기반 응답 DTO")
+    public static class CalendarDailyConsumeSliceResponse {
 
-        @Schema(description = "소비 날짜", example = "2025-07-02")
+        @Schema(description = "소비 날짜", example = "2025-07-23")
         private String date;
 
-        @Schema(description = "일일 소비 항목 목록")
-        private List<HouseholdConsumptionResponse.ConsumeItemDTO> items;
+        @Schema(description = "소비 항목 목록")
+        private List<ConsumeItemDTO> items;
 
-        @Schema(description = "일일 소비 항목 개수", example = "3")
+        @Schema(description = "소비 항목 개수", example = "3")
         private Integer itemSize;
+
+        @Schema(description = "첫 페이지 여부", example = "true")
+        private Boolean isFirst;
+
+        @Schema(description = "마지막 페이지 여부", example = "false")
+        private Boolean isLast;
+
+        @Schema(description = "다음 페이지 존재 여부", example = "true")
+        private Boolean hasNext;
+
+        @Schema(description = "다음 커서 ID", example = "17")
+        private Long nextCursorId;
     }
 
     @Getter

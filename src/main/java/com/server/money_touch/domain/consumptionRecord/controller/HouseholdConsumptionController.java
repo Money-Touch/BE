@@ -137,7 +137,7 @@ public class HouseholdConsumptionController {
     @Parameters({
             @Parameter(name = "year", description = "조회하려는 소비 연도", example = "2025", required = true),
             @Parameter(name = "month", description = "조회하려는 소비 월", example = "7", required = true),
-            @Parameter(name = "cursorId", description = "커서 (이전 요청의 마지막 consumptionRecordId). 첫 요청 시 생략", example = "3", required = false)
+            @Parameter(name = "cursorId", description = "커서 (이전 요청의 마지막 cursorId). 첫 요청 시 생략", example = "3", required = false)
     })
     @GetMapping("/monthly")
     public ApiResponse<HouseholdConsumptionResponse.MonthlyHistoryResponseDTO> getConsumptionRecordByMonth(@RequestParam Integer year, @RequestParam Integer month,
@@ -172,8 +172,13 @@ public class HouseholdConsumptionController {
 
     // 가계부 달력 특정 일의 소비 내역 조회
     @Operation(
-            summary = "달력 - 특정 날짜 소비 내역 조회 API",
-            description = "입력한 연도(year), 월(month), 일(day)에 해당하는 소비 내역을 조회합니다. 해당 날짜의 소비 내역이 없다면, 빈 리스트를 반환합니다."
+            summary = "달력 - 특정 날짜 소비 내역 조회 (커서 기반 무한 스크롤)",
+            description = """
+            입력한 연도(year), 월(month), 일(day)에 해당하는 소비 내역을 커서 기반으로 조회합니다.  
+            응답은 소비일 기준 최신순이며, `cursorId`를 기준으로 이후 내역을 무한 스크롤 방식으로 불러올 수 있습니다.  
+            - `cursorId`가 없을 경우 첫 페이지를 반환합니다.  
+            - 소비 내역이 없는 경우 `items`는 빈 배열로 응답됩니다.
+            """
     )
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
@@ -184,14 +189,15 @@ public class HouseholdConsumptionController {
             @Parameter(name = "year", description = "조회하려는 소비 연도", example = "2025", required = true),
             @Parameter(name = "month", description = "조회하려는 소비 월", example = "7", required = true),
             @Parameter(name = "day", description = "조회하려는 소비 일", example = "23", required = true),
+            @Parameter(name = "cursorId", description = "커서 (이전 요청의 마지막 cursorId). 첫 요청 시 생략", example = "3", required = false)
     })
     @GetMapping("/calendar/daily")
-    public ApiResponse<HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO> getConsumptionRecordByMonthAndDayInCalendar(@RequestParam Integer year, @RequestParam Integer month,
-                                                                                                                               @RequestParam Integer day, HttpServletRequest servletRequest)
+    public ApiResponse<HouseholdConsumptionResponse.CalendarDailyConsumeSliceResponse> getConsumptionRecordByMonthAndDayInCalendar(@RequestParam Integer year, @RequestParam Integer month,
+                                                                                                                               @RequestParam Integer day, @RequestParam(required = false) Long cursorId, HttpServletRequest servletRequest)
     {
 
         Long userId = authUtil.getUserIdFromRequest(servletRequest);
-        HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO response = consumptionRecordQueryService.getCalendarDailyConsumptionRecordsDetail(userId, year, month, day);
+        HouseholdConsumptionResponse.CalendarDailyConsumeSliceResponse response = consumptionRecordQueryService.getCalendarDailyConsumptionRecordsDetail(userId, year, month, day, cursorId);
         return ApiResponse.onSuccess(response);
     }
 }
