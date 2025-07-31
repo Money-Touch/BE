@@ -38,8 +38,12 @@ public class BudgetController {
     // 가계부 한 달 예산 등록
     @Operation(
             summary = "월간 예산 등록 또는 수정 API",
-            description = "총 예산과 기본, 사용자 정의, 소비 루틴 카테고리별 예산 목록을 RequestBody로 입력받아 해당 월의 예산을 등록하거나 수정합니다. " +
-                    "이미 등록된 예산이 있는 경우에는 수정됩니다. 등록하거나 수정할 내 카테고리나 소비 루틴 카테고리가 없다면 해당 리스트는 요청에서 생략하셔도 됩니다."
+            description = "총 예산과 기본, 사용자 정의 카테고리별 예산 목록을 RequestBody로 입력받아 해당 월의 예산을 등록하거나 수정합니다. " +
+                    "이미 등록된 예산이 있는 경우에는 수정됩니다.\n\n" +
+                    "- `defaultCategoryBudgets`: 기본 소비 카테고리 예산 목록으로, 필수입니다.\n" +
+                    "- `customCategoryBudgets`: 사용자가 직접 생성한 내 카테고리 예산 목록으로, 선택입니다.\n" +
+                    "- `routineCategoryBudgets`: 소비 루틴 카테고리 예산 목록입니다. 소비 루틴을 등록한 적이 있는 사용자이거나, 타인의 소비 루틴을 내 예산에 반영하여 소비 루틴 카테고리가 있는 경우에만 포함합니다.\n\n" +
+                    "예산 등록 또는 수정 시, 사용자가 해당하는 예산 카테고리를 제공하지 않으려면 해당 리스트는 생략 가능합니다."
     )
     @ApiSuccessCodeExample(resultClass = BudgetResponse.BudgetCreateResultDTO.class)
     @ApiErrorCodeExamples({
@@ -48,6 +52,7 @@ public class BudgetController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_TOO_LOW"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_ALREADY_EXIST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_CATEGORY_TYPE_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_CATEGORY_NOT_ALLOWED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
@@ -56,8 +61,6 @@ public class BudgetController {
                                                                         HttpServletRequest servletRequest) {
 
         Long userId = authUtil.getUserIdFromRequest(servletRequest);
-        log.info("userId, {}", userId);
-
         BudgetResponse.BudgetCreateResultDTO response = budgetCommandService.saveOrUpdateBudgetWithCategories(userId, request);
         return ApiResponse.onSuccess(response);
     }
@@ -87,12 +90,12 @@ public class BudgetController {
     @Operation(
             summary = "예산 아이디 및 한 달 총 소비 금액 조회 API",
             description = "한 달 예산을 기준으로 예산 아이디 및 현재까지의 총 소비 금액을 반환합니다. " +
-                    "등록된 예산이 없는 경우, 에러 메시지를 반환합니다."
+                    "이번 달 등록된 예산이 없는 경우, totalConsumptionAmount는 0원을 반환합니다."
     )
     @ApiSuccessCodeExample(resultClass = BudgetResponse.TotalConsumptionResultDTO.class)
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
-            @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_EXIST"),
+//            @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_EXIST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })

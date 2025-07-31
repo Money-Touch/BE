@@ -97,7 +97,18 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
 
             updateCategoryBudgetsByType(request.getDefaultCategoryBudgets(), user, budget, CategoryType.DEFAULT, existingMapByType.getOrDefault(CategoryType.DEFAULT, Map.of()));
             updateCategoryBudgetsByType(request.getCustomCategoryBudgets(), user, budget, CategoryType.CUSTOM, existingMapByType.getOrDefault(CategoryType.CUSTOM, Map.of()));
-            updateCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY, existingMapByType.getOrDefault(CategoryType.ROUTINE_CATEGORY, Map.of()));
+
+            // 소비 루틴 카테고리는 소비 루틴을 등로한 경우나, 타인의 소비 루틴을 내 예산에 반영한 경우만 가능
+            if (hasRoutineCategoryBudget(request)) {
+                boolean hasRoutineData = budget.getIsFromRoutine()
+                        || consumptionCategoryRepository.existsByUserAndBudgetCategoryType(user, CategoryType.ROUTINE_CATEGORY);
+
+                if (!hasRoutineData) {
+                    throw new ErrorHandler(ErrorStatus.ROUTINE_CATEGORY_NOT_ALLOWED);
+                }
+
+                updateCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY, existingMapByType.getOrDefault(CategoryType.ROUTINE_CATEGORY, Map.of()));
+            }
 
             log.info("예산 수정 완료 - userId: {}, budgetId: {}", userId, budget.getId());
         } else {
@@ -107,7 +118,18 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
 
             saveCategoryBudgetsByType(request.getDefaultCategoryBudgets(), user, budget, CategoryType.DEFAULT);
             saveCategoryBudgetsByType(request.getCustomCategoryBudgets(), user, budget, CategoryType.CUSTOM);
-            saveCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY);
+
+            // 소비 루틴 카테고리는 소비 루틴을 등로한 경우나, 타인의 소비 루틴을 내 예산에 반영한 경우만 가능
+            if (hasRoutineCategoryBudget(request)) {
+                boolean hasRoutineData = budget.getIsFromRoutine()
+                        || consumptionCategoryRepository.existsByUserAndBudgetCategoryType(user, CategoryType.ROUTINE_CATEGORY);
+
+                if (!hasRoutineData) {
+                    throw new ErrorHandler(ErrorStatus.ROUTINE_CATEGORY_NOT_ALLOWED);
+                }
+
+                saveCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY);
+            }
 
             log.info("예산 등록 완료 - userId: {}, budgetId: {}", user.getId(), budget.getId());
         }
@@ -329,5 +351,9 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
         Budget newBudget = BudgetConverter.toBudgetEntity(user, 0);
 
         return budgetRepository.save(newBudget);
+    }
+
+    private boolean hasRoutineCategoryBudget(BudgetRequest.BudgetCreateDTO request) {
+        return request.getRoutineCategoryBudgets() != null && !request.getRoutineCategoryBudgets().isEmpty();
     }
 }

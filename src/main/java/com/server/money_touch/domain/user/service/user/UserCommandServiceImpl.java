@@ -1,5 +1,11 @@
 package com.server.money_touch.domain.user.service.user;
 
+import com.server.money_touch.domain.budget.entity.Budget;
+import com.server.money_touch.domain.budget.enums.CategoryType;
+import com.server.money_touch.domain.budget.service.budget.BudgetCommandService;
+import com.server.money_touch.domain.consumptionRecord.converter.totalConsumption.TotalConsumptionConverter;
+import com.server.money_touch.domain.consumptionRecord.entity.TotalConsumption;
+import com.server.money_touch.domain.consumptionRecord.repository.totalConsumption.TotalConsumptionRepository;
 import com.server.money_touch.domain.user.converter.UserConverter;
 import com.server.money_touch.domain.user.dto.TokenResponse;
 import com.server.money_touch.domain.user.dto.UserRequest;
@@ -23,6 +29,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,6 +43,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+    private final BudgetCommandService budgetCommandService;
+    private final TotalConsumptionRepository totalConsumptionRepository;
 
     /**
      * 로컬 회원가입
@@ -67,6 +77,20 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         // 약관 동의 처리
         processAgreements(savedUser, request.getAgreeTerms());
+
+        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
+
+        // 1. Budget, 기본 ConsumptionCategory 테이블 조회 or 생성
+        Budget budget = budgetCommandService.createOrFindBudgetForMonth(user);
+        budgetCommandService.saveCategoryBudgetsByType(null, user, budget, CategoryType.DEFAULT);
+
+        // 2. TotalConsumption 조회 or 생성
+        TotalConsumption totalConsumption = totalConsumptionRepository
+                .findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
+                .orElseGet(() -> totalConsumptionRepository.save(
+                        TotalConsumptionConverter.toTotalConsumption(user))
+                );
 
         log.info("로컬 회원가입 완료 - userId: {}", savedUser.getId());
 

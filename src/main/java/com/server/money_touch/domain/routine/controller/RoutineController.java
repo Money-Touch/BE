@@ -27,6 +27,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import static com.server.money_touch.global.apiPayload.code.status.ErrorStatus.CONSUMPTION_CATEGORY_NAME_MISSING_IN_REQUEST;
+
 @Tag(name = "가계부 소비 루틴 페이지", description = "가계부 소비 루틴에 관한 API")
 @Slf4j
 @Validated
@@ -52,6 +54,7 @@ public class RoutineController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_ALREADY_EXIST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_CATEGORY_NAME_MISSING_IN_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })

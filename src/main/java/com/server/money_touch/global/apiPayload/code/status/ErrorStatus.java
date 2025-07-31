@@ -28,6 +28,7 @@ public enum ErrorStatus implements BaseErrorCode {
     TOTAL_BUDGET_TOO_LOW(HttpStatus.BAD_REQUEST, "BUDGET4003", "카테고리 예산 총합이 전체 예산보다 작습니다."),
     BUDGET_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "BUDGET4004", "한 달 예산 등록 횟수를 초과하였습니다."),
     BUDGET_NOT_EXIST(HttpStatus.NOT_FOUND, "BUDGET_4041", "이번달에 등록된 예산이 없습니다."),
+    ROUTINE_CATEGORY_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "BUDGET_403", "소비 루틴 카테고리는 소비 루틴을 등록한 경우나, 타인의 소비 루틴을 내 예산에 반영한 경우만 설정할 수 있습니다."),
 
     // 소비 MBTI 관련 에러
     MBTI_NOT_FOUND(HttpStatus.BAD_REQUEST, "MBTI4001", "해당하는 소비 MBTI가 없습니다."),
@@ -36,6 +37,7 @@ public enum ErrorStatus implements BaseErrorCode {
     CONSUMPTION_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CONSUMPTION_CATEGORY4001", "해당 카테고리 테이블을 찾을 수 없습니다."),
     CONSUMPTION_CATEGORY_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "CONSUMPTION_CATEGORY4001", "해당 카테고리 타입을 찾을 수 없습니다."),
     CONSUMPTION_CATEGORY_NAME_NOT_FOUND(HttpStatus.NOT_FOUND, "CONSUMPTION_CATEGORY4002", "해당 카테고리 이름을 찾을 수 없습니다."),
+    CONSUMPTION_CATEGORY_NAME_MISSING_IN_REQUEST(HttpStatus.NOT_FOUND, "CONSUMPTION_CATEGORY4003", "요청에 누락된 소비 카테고리 항목이 있습니다. (예산에 등록된 소비 카테고리 중 일부가 요청에 포함되지 않았습니다."),
 
     // 소비 기록 에러
     CONSUMPTION_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "CONSUMPTION4001", "일치하는 소비기록이 존재하지 않습니다."),
