@@ -55,6 +55,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 고정비 관련 에러
     FIXED_CONSUMPTION_NOT_FOUND(HttpStatus.BAD_REQUEST, "FIXED_CONSUMPTION4001", "아이디와 일치하는 고정비가 없습니다."),
 
+    // 총 소비 관련 에러
+    TOTAL_CONSUMPTION_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "TOTAL_CONSUMPTION5001", "총 소비 데이터가 존재하지 않습니다. 관리자에게 문의 바랍니다."),
+
     // 소비 루틴 관련 에러
     ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST, "ROUTINE4001", "아이디와 일치하는 소비 루틴이 없습니다."),
     ROUTINE_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "ROUTINE4002", "한 달 소비 루틴 등록 횟수를 초과하였습니다."),

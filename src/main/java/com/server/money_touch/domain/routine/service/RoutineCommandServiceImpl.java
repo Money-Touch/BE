@@ -4,6 +4,8 @@ import com.server.money_touch.domain.budget.entity.Budget;
 import com.server.money_touch.domain.budget.entity.BudgetCategory;
 import com.server.money_touch.domain.budget.repository.budget.BudgetRepository;
 import com.server.money_touch.domain.budget.repository.budgetCategory.BudgetCategoryRepository;
+import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
+import com.server.money_touch.domain.consumptionRecord.repository.consumptionCategory.ConsumptionCategoryRepository;
 import com.server.money_touch.domain.routine.converter.RoutineConverter;
 import com.server.money_touch.domain.routine.converter.RoutineHashtagConverter;
 import com.server.money_touch.domain.routine.dto.RoutineRequest;
@@ -16,18 +18,16 @@ import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
+import com.server.money_touch.domain.budget.enums.CategoryType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.server.money_touch.global.apiPayload.code.status.ErrorStatus.*;
 
@@ -43,6 +43,7 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
     private final UserRepository userRepository;
     private final BudgetRepository budgetRepository;
     private final BudgetCategoryRepository budgetCategoryRepository;
+    private final ConsumptionCategoryRepository consumptionCategoryRepository;
 
     // 소비 루틴 등록
     @Transactional
@@ -81,7 +82,7 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
         Map<String, Integer> requestMap = request.getBudgetList().stream()
                 .collect(Collectors.toMap(RoutineRequest.CategoryBudgetDTO::getCategoryName, RoutineRequest.CategoryBudgetDTO::getAmount));
 
-        // 6. 해당 예산에 연결된 예산 카테고리 + 소비 카테고리 조회 (JOIN FETCH 필요)
+        // 6. 해당 예산에 연결된 예산 카테고리 + 소비 카테고리 조회
         List<BudgetCategory> budgetCategories = budgetCategoryRepository.findAllByBudgetIdWithCategory(budgetId);
 
         // 7. categoryName → BudgetCategory 맵핑
@@ -91,18 +92,38 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
                         Function.identity()
                 ));
 
-        // 8. 요청 기준으로 비교 후 금액 수정
-        requestMap.forEach((categoryName, amount) -> {
-            BudgetCategory category = budgetCategoryMap.get(categoryName);
-            if (category == null) {
-                throw new ErrorHandler(CONSUMPTION_CATEGORY_NAME_NOT_FOUND);
-            }
-            if (!category.getBudgetCategoryMoney().equals(amount)) {
-                category.updateAmount(amount);
-            }
-        });
+        // 8. 요청 기준으로 비교 후 금액 수정 or 새로 생성
+        for (Map.Entry<String, Integer> entry : requestMap.entrySet()) {
+            String categoryName = entry.getKey();
+            Integer amount = entry.getValue();
 
-        // 8-1. 요청에 포함되지 않은 소비 카테고리 존재 시 예외 처리 (Stream 방식)
+            BudgetCategory category = budgetCategoryMap.get(categoryName);
+
+            if (category != null) {
+                if (!category.getBudgetCategoryMoney().equals(amount)) {
+                    category.updateAmount(amount);
+                }
+            } else {
+                // 존재하지 않는 경우 CUSTOM 타입 소비 카테고리 및 예산 카테고리 생성
+                ConsumptionCategory newCategory = ConsumptionCategory.builder()
+                        .budgetCategoryName(categoryName)
+                        .budgetCategoryType(CategoryType.CUSTOM)
+                        .user(user)
+                        .build();
+
+                ConsumptionCategory savedCategory = consumptionCategoryRepository.save(newCategory);
+
+                BudgetCategory newBudgetCategory = BudgetCategory.builder()
+                        .budget(budget)
+                        .consumptionCategory(savedCategory)
+                        .budgetCategoryMoney(amount)
+                        .build();
+
+                budgetCategoryRepository.save(newBudgetCategory);
+            }
+        }
+
+        // 8-1. 요청에 포함되지 않은 소비 카테고리 존재 시 예외 처리
         budgetCategoryMap.keySet().stream()
                 .filter(categoryName -> !requestMap.containsKey(categoryName))
                 .findFirst()
@@ -122,7 +143,7 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
             routineHashtagRepository.saveAll(hashtags);
         }
 
-        // 11. 결과 DTO 변환 후 반환
+        // 11. 결과 DTO 반환
         Long routineId = routine.getId();
         log.info("소비 루틴 등록 완료 - userId: {}, routineId: {}", userId, routineId);
         return RoutineConverter.toRoutineCreateResultDTO(routineId);

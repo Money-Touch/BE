@@ -47,6 +47,7 @@ public class RoutineController {
             summary = "소비 루틴 등록 API",
             description = "해당 API는 소비 루틴을 등록하는 기능을 제공합니다. 예산 ID는 Path Variable로 전달하며, 카테고리, 금액, 설명 등의 루틴 정보는 RequestBody로 전달합니다. " +
                     "먼저 '한 달 예산 내역 조회 API'를 통해 본인의 예산 목록을 확인한 후, 해당 예산에 포함된 모든 소비 카테고리를 기준으로 요청 데이터를 구성해 주세요. " +
+                    "기존 예산에 저장되어 있는 카테고리 이외에 새로운 카테고리와 금액을 등록할 경우, 요청 데이터에 포함해주세요." +
                     "카테고리별 예산 금액이 기존과 다를 경우, 수정된 금액으로 요청하시면 해당 금액이 반영됩니다."
     )
     @ApiSuccessCodeExample(resultClass = RoutineResponse.RoutineCreateResultDTO.class)

@@ -106,16 +106,14 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
         LocalDateTime startOfMonth = LocalDate.of(year, month, 1).atStartOfDay();
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
 
-        // 해당 월의 총 소비 금액 조회, 데이터가 없다면 생성
+        // 해당 월의 총 소비 금액 조회
         TotalConsumption totalConsumption = totalConsumptionRepository
                 .findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
-                .orElseGet(() -> {
-                    TotalConsumption newConsumption = TotalConsumptionConverter.toTotalConsumption(user);
-                    return totalConsumptionRepository.save(newConsumption);
-                });
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_EXIST));
 
         // 해당 월의 예산 조회
         Budget budget = budgetRepository.findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
+                .filter(b -> b.getBudgetTotal() > 0)
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_EXIST));
 
         Long budgetId = budget.getId();
