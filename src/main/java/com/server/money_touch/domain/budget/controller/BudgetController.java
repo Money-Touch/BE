@@ -48,7 +48,6 @@ public class BudgetController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_EXCEEDED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_TOO_LOW"),
-            @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_ALREADY_EXIST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_CATEGORY_TYPE_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_CATEGORY_NOT_ALLOWED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
@@ -93,7 +92,7 @@ public class BudgetController {
     @ApiSuccessCodeExample(resultClass = BudgetResponse.TotalConsumptionResultDTO.class)
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
-//            @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_EXIST"),
+//            @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_CONSUMPTION_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
