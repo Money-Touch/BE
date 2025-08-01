@@ -34,10 +34,6 @@ public class    UserRequest{
         @NotBlank(message = "수입 여부는 필수값입니다.")
         private String isIncome;
 
-        @Schema(description = "닉네임", example = "잔디")
-        @NotBlank(message = "닉네임은 필수입니다")
-        private String nickname;
-
         @Schema(description = "사진 URL", example = "http://example.com/image.jpg")
         private String profileImgUrl;
 
