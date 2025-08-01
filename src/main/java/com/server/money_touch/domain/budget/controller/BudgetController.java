@@ -87,7 +87,7 @@ public class BudgetController {
     @Operation(
             summary = "예산 아이디 및 한 달 총 소비 금액 조회 API",
             description = "한 달 예산을 기준으로 예산 아이디 및 현재까지의 총 소비 금액을 반환합니다. " +
-                    "이번 달 등록된 예산이 없는 경우, totalConsumptionAmount는 0원을 반환합니다."
+                    "이번 달 등록된 예산이 없는 경우, totalConsumptionAmount는 0원, budetId는 null을 반환합니다."
     )
     @ApiSuccessCodeExample(resultClass = BudgetResponse.TotalConsumptionResultDTO.class)
     @ApiErrorCodeExamples({

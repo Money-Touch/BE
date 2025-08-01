@@ -114,7 +114,9 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
         int totalAmount = (totalConsumption != null) ? totalConsumption.getTotalConsumptionAmount() : 0;
 
         // 예산 조회 (없으면 budgetId = null)
-        Budget budget = budgetRepository.findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
+        // 회원가입 및 1일에 데이터가 생성되기 때문에 createdAt과 updatedAt이 같으면 아직 사용자가 직접 등록하지 않은 예산으로 간주
+        Budget budget = budgetRepository
+                .findByUserAndCreatedAtBetweenAndCreatedEqualsUpdated(user, startOfMonth, endOfMonth)
                 .filter(b -> b.getBudgetTotal() > 0)
                 .orElse(null);
 
