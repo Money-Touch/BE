@@ -1,5 +1,6 @@
 package com.server.money_touch.domain.consumptionRecord.dto;
 
+import com.server.money_touch.domain.consumptionRecord.enums.ReactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,20 +20,108 @@ public class FeedResponse {
     public static class FeedListResultDTO {
 
         @Schema(description = "게시글 목록")
-        List<FeedDetailResultDTO> feedList;
+        private List<FeedListItemDTO> feedList;
 
-        @Schema(description = "현재 페이지의 알림 개수", example = "10")
-        Integer FeedListSize;
+        @Schema(description = "현재 페이지의 게시글 개수", example = "10")
+        private Integer FeedListSize;
 
         @Schema(description = "페이지 처음 여부", example = "true")
-        Boolean isFirst;
-
-        @Schema(description = "페이지 마지막 여부", example = "false")
-        Boolean isLast;
+        private Boolean isFirst;
 
         @Schema(description = "다음 페이지가 있는지 여부", example = "true")
-        Boolean hasNext;
+        private Boolean hasNext;
 
+        @Schema(description = "다음 커서 ID (무한스크롤용)", example = "1")
+        private Long nextCursorId;
+
+        @Schema(description = "다음 커서 조회수", example = "20")
+        private Integer nextCursorViewCount;
+
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "피드 리스트 아이템 (리스트 전용)")
+    public static class FeedListItemDTO {
+
+        @Schema(description = "소비기록 ID", example = "1")
+        private Long consumptionRecordId;
+
+        @Schema(description = "사용자 정보")
+        private UserInfo user;
+
+        @Schema(description = "이미지 URL 리스트", example = "[\"https://example.com/image1.jpg\", \"https://example.com/image2.jpg\"]")
+        private List<String> imageUrls;
+
+        @Schema(description = "생성일시", example = "2024-03-15T14:30:00")
+        private LocalDateTime createdAt;
+
+        @Schema(description = "현명해요 수", example = "5")
+        private Integer wiseCount;
+
+        @Schema(description = "낭비에요 수", example = "1")
+        private Integer wasteCount;
+
+        @Schema(description = "조회 수", example = "21")
+        private Integer viewCount;
+
+        @Schema(description = "현재 내가 누른 리액션 타입 (없으면 null)", example = "WISE")
+        private ReactionType myReaction;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "나의 피드 리스트 응답")
+    public static class MyFeedListResultDTO {
+
+        @Schema(description = "게시글 목록")
+        private List<MyFeedItemDTO> feedList;
+
+        @Schema(description = "현재 페이지의 게시글 개수", example = "10")
+        private Integer FeedListSize;
+
+        @Schema(description = "페이지 처음 여부", example = "true")
+        private Boolean isFirst;
+
+        @Schema(description = "다음 페이지가 있는지 여부", example = "true")
+        private Boolean hasNext;
+
+        @Schema(description = "다음 커서 ID (무한스크롤용)", example = "1")
+        private Long nextCursorId;
+
+        @Schema(description = "다음 커서 조회수", example = "20")
+        private Integer nextCursorViewCount;
+
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "나의 피드 아이템")
+    public static class MyFeedItemDTO {
+
+        @Schema(description = "소비기록 ID", example = "1")
+        private Long consumptionRecordId;
+
+        @Schema(description = "사용자 ID", example = "1")
+        private Long userId;
+
+        @Schema(description = "이미지 URL 리스트", example = "[\"https://example.com/image1.jpg\", \"https://example.com/image2.jpg\"]")
+        private List<String> imageUrls;
+
+        @Schema(description = "소비 금액", example = "12000")
+        private int amount;
+
+        @Schema(description = "소비 내용", example = "신라방 마라탕")
+        private String content;
+
+        @Schema(description = "생성일시", example = "2024-03-15T14:30:00")
+        private LocalDateTime createdAt;
     }
 
     @Builder
@@ -57,8 +146,8 @@ public class FeedResponse {
         @Schema(description = "소비 내용", example = "신라방 마라탕")
         private String content;
 
-        @Schema(description = "이미지 URL", example = "https://example.com/image.jpg")
-        private String imageUrl;
+        @Schema(description = "이미지 URL 리스트", example = "[\"https://example.com/image1.jpg\", \"https://example.com/image2.jpg\"]")
+        private List<String> imageUrls;
 
         @Schema(description = "메모", example = "친구랑 같이 먹었어요!")
         private String memo;
@@ -77,6 +166,10 @@ public class FeedResponse {
 
         @Schema(description = "조회 수", example = "21")
         private Integer viewCount;
+
+        @Schema(description = "현재 내가 누른 리액션 타입 (없으면 null)", example = "WISE")
+        private ReactionType myReaction;
+
     }
 
     @Builder
@@ -122,6 +215,58 @@ public class FeedResponse {
         @Schema(description = "댓글 ID", example = "10")
         private Long commentId;
 
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "댓글 + 대댓글 조회 응답 정보")
+    public static class CommentListDTO {
+
+        @Schema(description = "댓글 ID", example = "10")
+        private Long commentId;
+
+        @Schema(description = "댓글 작성자 ID", example = "1")
+        private Long userId;
+
+        @Schema(description = "댓글 작성자 닉네임", example = "유저1")
+        private String nickname;
+
+        @Schema(description = "댓글 작성자 프로필 이미지 url", example = "https://example.com/profile.jpg")
+        private String profileImgUrl;
+
+        @Schema(description = "댓글 내용", example = "마라탕 맛있죠!")
+        private String content;
+
+        @Schema(description = "좋아요 수", example = "3")
+        private Integer likes;
+
+        @Schema(description = "내가 좋아요를 눌렀는지 여부", example = "true")
+        private boolean liked;
+
+        @Schema(description = "작성 시간", example = "2024-07-28T13:00:00")
+        private LocalDateTime createdAt;
+
+        @Schema(description = "대댓글 목록")
+        private List<CommentListDTO> replies;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "댓글 좋아요 응답 정보")
+    public static class CommentLikeResultDTO {
+
+        @Schema(description = "댓글 ID", example = "1")
+        private Long commentId;
+
+        @Schema(description = "좋아요 개수", example = "8")
+        private int likeCount;
+
+        @Schema(description = "현재 사용자가 좋아요를 눌렀는지 여부", example = "true")
+        private boolean liked;
     }
 
     @Getter

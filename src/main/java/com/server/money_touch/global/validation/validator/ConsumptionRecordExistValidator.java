@@ -1,9 +1,7 @@
 package com.server.money_touch.global.validation.validator;
 
-import com.server.money_touch.domain.budget.service.budget.BudgetQueryService;
 import com.server.money_touch.domain.consumptionRecord.service.ConsumptionRecordQueryService;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
-import com.server.money_touch.global.validation.annotation.ExistBudget;
 import com.server.money_touch.global.validation.annotation.ExistConsumptionRecord;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

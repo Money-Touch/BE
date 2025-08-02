@@ -13,10 +13,6 @@ public class FeedRequest {
     @Schema(description = "댓글 등록 요청 정보")
     public static class CommentCreateDTO {
 
-        @Schema(description = "소비 기록 ID", example = "1")
-        @NotNull(message = "소비 기록 ID는 필수입니다.")
-        private Long consumptionRecordId;
-
         @Schema(description = "부모 댓글 ID (일반 댓글이면 null)", example = "null")
         private Long parentId;
 

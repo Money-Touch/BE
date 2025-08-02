@@ -35,7 +35,7 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
     private final ConsumptionRecordRepository consumptionRecordRepository;
     private final UserRepository userRepository;
     private final ConsumptionCategoryRepository consumptionCategoryRepository;
-    private static final Integer PAGE_SIZE = 15;
+    private static final Integer PAGE_SIZE = 10;
 
     // 소비 기록 존재 여부 검증
     @Override
@@ -62,67 +62,7 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
         return ConsumptionRecordConverter.toDailyConsumptionDetailDTO(consumptionRecord, consumptionCategory);
     }
 
-    // 달력에서 특정 날짜의 소비 내역 상세 조회
-    @Override
-    public HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO getCalendarDailyConsumptionRecordsDetail(Long userId, int year, int month, int day) {
-        // 1. 사용자 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
-
-        // 2. 조회 대상 날짜 생성
-        LocalDate targetDate = LocalDate.of(year, month, day);
-
-        // 3. 해당 날짜의 소비 내역 조회 (Projection 형태)
-        List<DailyConsumptionItemDetailProjection> projections = consumptionRecordRepository.findDailyConsumptionItems(userId, targetDate);
-
-        // 4. Projection → DTO 변환
-        List<HouseholdConsumptionResponse.ConsumeItemDTO> items = projections.stream()
-                .map(p -> HouseholdConsumptionResponse.ConsumeItemDTO.builder()
-                        .consumptionRecordId(p.getConsumptionRecordId())
-                        .categoryName(p.getCategoryName())
-                        .content(p.getContent())
-                        .amount(p.getAmount())
-                        .build())
-                .toList();
-
-        log.info("달력 특정 날짜의 소비 내역 조회 완료 -userId: {}, targetDate: {}", userId, targetDate);
-
-        // 5. 변환된 결과를 응답 DTO로 매핑하여 반환
-        return ConsumptionRecordConverter.toCalendarDailyConsumeDetailDTO(targetDate, items);
-    }
-
-    // 가계부 달력 월별 소비 금액 조회
-    @Override
-    public HouseholdConsumptionResponse.CalendarDateAmountMapDTO getMonthlyConsumptionCalendar(Long userId, int year, int month) {
-        // 1. 사용자 존재 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
-
-        // 2. 해당 월의 시작일과 마지막 날짜 계산
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-
-        // 3. 소비 기록에서 일별 총 소비 금액 조회 (날짜 기준 group by)
-        List<DailyAmountProjection> projections = consumptionRecordRepository
-                .findDailyTotalAmounts(userId, startDate, endDate);
-
-        // 4. 소비일 기준 오름차순 정렬된 Map 생성
-        Map<String, Integer> result = projections.stream()
-                .sorted(Comparator.comparing(DailyAmountProjection::getDate)) // LocalDate 기준 정렬
-                .collect(Collectors.toMap(
-                        p -> p.getDate().toString(),            // key: 날짜 문자열
-                        DailyAmountProjection::getTotalAmount, // value: 총 소비 금액
-                        (v1, v2) -> v1,                         // key 충돌 시 첫 번째 값 유지
-                        LinkedHashMap::new                      // 순서 유지
-                ));
-
-        log.info("달력 월별 소비 금액 조회 완료: userId: {}, year: {}, month: {}", userId, year, month);
-
-        // 5. DTO 생성 후 반환
-        return HouseholdConsumptionResponse.CalendarDateAmountMapDTO.builder().data(result).build();
-    }
-
-    // 가계부 달력 해당 월의 소비 내역 목록 조회 (커서 기반 무한스크롤)
+    // 해당 월의 소비 내역 목록 조회 (커서 기반 무한스크롤)
     @Override
     public HouseholdConsumptionResponse.MonthlyHistoryResponseDTO getMonthlyConsumptionRecords(Long userId, int year, int month, Long cursorId) {
         // 사용자 조회
@@ -161,9 +101,11 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
                 .toList();
 
         // 다음 커서 ID 설정 (마지막 요소의 ID 사용)
-        Long nextCursorId = content.isEmpty() ? null : content.get(content.size() - 1).getConsumptionRecordId();
+        Long nextCursorId = (slice.hasNext() && !content.isEmpty())
+                ? content.get(content.size() - 1).getConsumptionRecordId()
+                : null;
 
-        log.info("달력 해당 월의 소비 내역 목록 조회(커서 기반 무한스크롤) 완료 - userId: {}, year: {}, month: {}, cursorId: {}, nextCursorId: {}", userId, year, month, cursorId, nextCursorId);
+        log.info("해당 월의 소비 내역 목록 조회(커서 기반 무한스크롤) 완료 - userId: {}, year: {}, month: {}, cursorId: {}, nextCursorId: {}", userId, year, month, cursorId, nextCursorId);
 
         // 최종 응답 DTO 반환
         return ConsumptionRecordConverter.toMonthlyHistoryResponseDTO(
@@ -172,5 +114,82 @@ public class ConsumptionRecordQueryServiceImpl implements ConsumptionRecordQuery
                 slice.hasNext(),             // hasNext: 다음 페이지 존재 여부
                 nextCursorId                 // nextCursorId: 다음 요청 시 사용할 커서 ID
         );
+    }
+
+    // 가계부 달력 월별 소비 금액 조회
+    @Override
+    public HouseholdConsumptionResponse.CalendarDateAmountMapDTO getMonthlyConsumptionCalendar(Long userId, int year, int month) {
+        // 1. 사용자 존재 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 해당 월의 시작일과 마지막 날짜 계산
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        // 3. 소비 기록에서 일별 총 소비 금액 조회 (날짜 기준 group by)
+        List<DailyAmountProjection> projections = consumptionRecordRepository
+                .findDailyTotalAmounts(userId, startDate, endDate);
+
+        // 4. 소비일 기준 오름차순 정렬된 Map 생성
+        Map<String, Integer> result = projections.stream()
+                .sorted(Comparator.comparing(DailyAmountProjection::getDate)) // LocalDate 기준 정렬
+                .collect(Collectors.toMap(
+                        p -> p.getDate().toString(),            // key: 날짜 문자열
+                        DailyAmountProjection::getTotalAmount, // value: 총 소비 금액
+                        (v1, v2) -> v1,                         // key 충돌 시 첫 번째 값 유지
+                        LinkedHashMap::new                      // 순서 유지
+                ));
+
+        log.info("달력 월별 소비 금액 조회 완료: userId: {}, year: {}, month: {}", userId, year, month);
+
+        // 5. DTO 생성 후 반환
+        return HouseholdConsumptionResponse.CalendarDateAmountMapDTO.builder().data(result).build();
+    }
+
+    // 달력에서 특정 날짜의 소비 내역 상세 조회 (커서 기반 무한스크롤)
+    @Override
+    public HouseholdConsumptionResponse.CalendarDailyConsumeSliceResponse getCalendarDailyConsumptionRecordsDetail(Long userId, int year, int month, int day, Long cursorId) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        LocalDate targetDate = LocalDate.of(year, month, day);
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
+
+        // 커서 consumeDate 조회
+        LocalDateTime cursorConsumeDate = null;
+        if (cursorId != null) {
+            cursorConsumeDate = consumptionRecordRepository.findConsumeDateById(cursorId);
+        }
+
+        // 데이터 조회 (Slice)
+        Slice<DailyConsumptionItemDetailProjection> slice = consumptionRecordRepository
+                .findDailyConsumptionItemsWithCursor(userId, startOfDay, endOfDay, cursorId, cursorConsumeDate, PAGE_SIZE);
+
+        List<HouseholdConsumptionResponse.ConsumeItemDTO> items = slice.getContent().stream()
+                .map(p -> HouseholdConsumptionResponse.ConsumeItemDTO.builder()
+                        .consumptionRecordId(p.getConsumptionRecordId())
+                        .categoryName(p.getCategoryName())
+                        .content(p.getContent())
+                        .amount(p.getAmount())
+                        .build())
+                .toList();
+
+        Long nextCursorId = (slice.hasNext() && !items.isEmpty())
+                ? items.get(items.size() - 1).getConsumptionRecordId()
+                : null;
+        boolean isFirst = (cursorId == null);
+
+        log.info("달력 특정 날짜의 소비 내역 상세 조회(커서 기반 무한스크롤) 완료 - userId: {}, year: {}, month: {}, cursorId: {}, nextCursorId: {}", userId, year, month, cursorId, nextCursorId);
+
+        return ConsumptionRecordConverter.toCalendarDailyConsumeSliceResponse(
+                targetDate,
+                slice,
+                nextCursorId,
+                isFirst
+        );
+
     }
 }

@@ -26,13 +26,10 @@ public class NotificationResponse {
         @Schema(description = "첫 페이지 여부", example = "true")
         private boolean isFirst;
 
-        @Schema(description = "마지막 페이지 여부", example = "false")
-        private boolean isLast;
-
         @Schema(description = "다음 페이지 존재 여부", example = "true")
         private boolean hasNext;
 
-        @Schema(description = "다음 커서 ID (무한스크롤용)", example = "123")
+        @Schema(description = "다음 커서 ID (무한스크롤용)", example = "1")
         private Long nextCursorId;
     }
 
@@ -58,14 +55,17 @@ public class NotificationResponse {
         @Schema(description = "알림 유형 이미지 URL", example = "http://example.com/comment.png")
         private String imgUrl;
 
-        @Schema(description = "발신자 아이디", example = "2")
-        private Long senderId;
+        @Schema(description = "발신자 이름", example = "제이")
+        private String senderName;
 
         @Schema(description = "대상 아이디", example = "10")
         private Long targetId;
 
         @Schema(description = "읽음 여부", example = "false")
         private Boolean isRead;
+
+        @Schema(description = "소비기록 대표 이미지 URL", example = "http://image.com/comment.png")
+        private String imageUrl;
 
         @Schema(description = "알림 생성 일시", example = "2025-01-15T14:30:25")
         private LocalDateTime createdAt;

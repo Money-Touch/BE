@@ -15,14 +15,8 @@ public class Routine extends BaseEntity {
     @Column(length = 20, nullable = false)
     private String routineName;
 
-    @Column(length = 1000, nullable = false)
-    private String routineContent;
-
     @Column(nullable = false)
     private String routineImageUrl;
-
-    @Column(columnDefinition = "INT DEFAULT 0", nullable = false)
-    private Integer viewCount; // 조회수
 
     // 소비루틴-예산 다대일
     @ManyToOne(fetch = FetchType.LAZY)

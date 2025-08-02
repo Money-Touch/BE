@@ -97,7 +97,17 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
 
             updateCategoryBudgetsByType(request.getDefaultCategoryBudgets(), user, budget, CategoryType.DEFAULT, existingMapByType.getOrDefault(CategoryType.DEFAULT, Map.of()));
             updateCategoryBudgetsByType(request.getCustomCategoryBudgets(), user, budget, CategoryType.CUSTOM, existingMapByType.getOrDefault(CategoryType.CUSTOM, Map.of()));
-            updateCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY, existingMapByType.getOrDefault(CategoryType.ROUTINE_CATEGORY, Map.of()));
+
+            // 소비 루틴 카테고리는 타인의 소비 루틴을 내 예산에 반영하여 소비 루틴 카테고리가 생성된 경우만 가능
+            if (hasRoutineCategoryBudget(request)) {
+                boolean hasRoutineData = consumptionCategoryRepository.existsByUserAndBudgetCategoryType(user, CategoryType.ROUTINE_CATEGORY);
+
+                if (!hasRoutineData) {
+                    throw new ErrorHandler(ErrorStatus.ROUTINE_CATEGORY_NOT_ALLOWED);
+                }
+
+                updateCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY, existingMapByType.getOrDefault(CategoryType.ROUTINE_CATEGORY, Map.of()));
+            }
 
             log.info("예산 수정 완료 - userId: {}, budgetId: {}", userId, budget.getId());
         } else {
@@ -107,7 +117,17 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
 
             saveCategoryBudgetsByType(request.getDefaultCategoryBudgets(), user, budget, CategoryType.DEFAULT);
             saveCategoryBudgetsByType(request.getCustomCategoryBudgets(), user, budget, CategoryType.CUSTOM);
-            saveCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY);
+
+            // 소비 루틴 카테고리는 타인의 소비 루틴을 내 예산에 반영하여 소비 루틴 카테고리가 생성된 경우만 가능
+            if (hasRoutineCategoryBudget(request)) {
+                boolean hasRoutineData = consumptionCategoryRepository.existsByUserAndBudgetCategoryType(user, CategoryType.ROUTINE_CATEGORY);
+
+                if (!hasRoutineData) {
+                    throw new ErrorHandler(ErrorStatus.ROUTINE_CATEGORY_NOT_ALLOWED);
+                }
+
+                saveCategoryBudgetsByType(request.getRoutineCategoryBudgets(), user, budget, CategoryType.ROUTINE_CATEGORY);
+            }
 
             log.info("예산 등록 완료 - userId: {}, budgetId: {}", user.getId(), budget.getId());
         }
@@ -140,8 +160,11 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
 
         // DEFAULT 타입일 경우만 유효성 검사 및 누락 보정 적용
         if (type == CategoryType.DEFAULT) {
+            // ✅ 기본 카테고리 순서 유지를 위해 LinkedHashMap 사용
+            Map<String, Integer> nameToAmount = new LinkedHashMap<>();
+
             // 요청된 이름-금액 쌍 추출
-            Map<String, Integer> nameToAmount = Optional.ofNullable(requestList).orElse(List.of()).stream()
+            Optional.ofNullable(requestList).orElse(List.of()).stream()
                     .filter(Objects::nonNull)
                     .map(dto -> {
                         if (dto instanceof BudgetRequest.DefaultCategoryBudget def)
@@ -149,31 +172,32 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
                         return null;
                     })
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .forEach(entry -> nameToAmount.put(entry.getKey(), entry.getValue()));
 
-            // 예외 발생: 요청에 기본 카테고리 외의 이름이 포함된 경우
+            // ✅ 유효하지 않은 이름이 포함된 경우 예외 발생
             boolean hasInvalidName = nameToAmount.keySet().stream()
                     .anyMatch(name -> !DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES.contains(name));
             if (hasInvalidName) {
                 throw new ErrorHandler(ErrorStatus.CONSUMPTION_CATEGORY_TYPE_NOT_FOUND);
             }
 
-            // 누락된 기본 카테고리 이름 중, 기존에 존재하지 않는 항목만 0원으로 보정
-            DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES.stream()
-                    .filter(defaultName -> !nameToAmount.containsKey(defaultName)) // 요청에 없는 이름
-                    .filter(defaultName -> !existingMap.containsKey(defaultName)) // 기존에도 없는 이름
-                    .forEach(missing -> nameToAmount.put(missing, 0));
+            // ✅ 누락된 기본 카테고리 중 기존에도 없는 항목은 0원으로 보정 (순서 유지)
+            DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES.forEach(name -> {
+                if (!nameToAmount.containsKey(name) && !existingMap.containsKey(name)) {
+                    nameToAmount.put(name, 0);
+                }
+            });
 
-            // 요청에 포함되었지만 이미 존재하는 항목은 제외
+            // ✅ 이미 존재하는 항목은 제거
             nameToAmount.keySet().removeIf(existingMap::containsKey);
 
-            // 실제 추가/갱신할 항목이 없는 경우 종료
+            // ✅ 실제 추가/갱신할 항목이 없는 경우 종료
             if (nameToAmount.isEmpty()) {
                 log.info("[카테고리 등록] 모든 기본 카테고리가 이미 존재하여 저장할 항목이 없습니다. userId={}, budgetId={}", user.getId(), budget.getId());
                 return;
             }
 
-            // 수정 공통 메서드 호출
+            // ✅ 공통 저장 로직 호출
             saveOrUpdateCategoryBudgetsByNameMap(nameToAmount, user, budget, type, existingMap);
         } else {
             // 그 외 타입은 기존 처리 방식 유지
@@ -236,42 +260,44 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
                                               CategoryType type,
                                               Map<String, BudgetCategory> existingMap) {
 
-        // 1. 각 이름-금액 쌍에 대해 저장 또는 수정 처리
-        List<BudgetCategory> toSave = nameToAmount.entrySet().stream()
-                .map(entry -> {
-                    String name = entry.getKey();
-                    Integer amount = entry.getValue();
+        // 1. 기본 타입(DEFAULT)인 경우 누락된 항목을 0원으로 보정
+        if (type == CategoryType.DEFAULT) {
+            for (String defaultName : DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES) {
+                if (!nameToAmount.containsKey(defaultName)) {
+                    nameToAmount.put(defaultName, 0);
+                }
+            }
+        }
 
-                    // 이미 존재하는 BudgetCategory가 있으면 금액만 업데이트
-                    BudgetCategory existing = existingMap.get(name);
-                    if (existing != null) {
-                        existing.updateAmount(amount);
-                        return null; // 업데이트만, 새로 저장할 건 아님
-                    }
+        // 2. 저장 또는 업데이트할 BudgetCategory 리스트 생성
+        List<BudgetCategory> toSave = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : nameToAmount.entrySet()) {
+            String name = entry.getKey();
+            Integer amount = entry.getValue();
 
-                    // 없으면 ConsumptionCategory를 찾거나 생성하고 BudgetCategory 생성
-                    ConsumptionCategory category = consumptionCategoryRepository
-                            .findByUserAndBudgetCategoryNameAndBudgetCategoryType(user, name, type)
-                            .orElseGet(() -> consumptionCategoryRepository.save(
-                                    ConsumptionCategoryConverter.toConsumptionCategory(user, name, type)
-                            ));
-                    return BudgetCategoryConverter.toBudgetCategory(budget, category, amount);
-                })
-                .filter(Objects::nonNull) // 새로 생성된 것만 저장 대상
-                .toList();
+            BudgetCategory existing = existingMap.get(name);
+            if (existing != null) {
+                existing.updateAmount(amount);
+                continue; // 업데이트 완료
+            }
 
-        // 2. 새로 생성된 BudgetCategory 저장
+            ConsumptionCategory category = consumptionCategoryRepository
+                    .findByUserAndBudgetCategoryNameAndBudgetCategoryType(user, name, type)
+                    .orElseGet(() -> consumptionCategoryRepository.save(
+                            ConsumptionCategoryConverter.toConsumptionCategory(user, name, type)
+                    ));
+
+            toSave.add(BudgetCategoryConverter.toBudgetCategory(budget, category, amount));
+        }
+
+        // 3. 새 BudgetCategory 저장
         if (!toSave.isEmpty()) {
             budgetCategoryRepository.saveAll(toSave);
         }
 
-        // 3. 삭제 대상 처리 (요청에 포함되지 않은 기존 BudgetCategory 삭제)
-        // 요청된 nameToAmount에 없는 기존 항목은 삭제 대상이 됨
-        // 단, DEFAULT 타입은 삭제 금지
-        if (type != CategoryType.DEFAULT) { // 기본 카테고리는 삭제 금지
-
-            Set<String> requestedNames = (nameToAmount != null) ? nameToAmount.keySet() : Set.of();
-
+        // 4. DEFAULT가 아닐 경우, 요청에 없는 기존 BudgetCategory 삭제
+        if (type != CategoryType.DEFAULT) {
+            Set<String> requestedNames = nameToAmount.keySet();
             List<BudgetCategory> toDelete = existingMap.entrySet().stream()
                     .filter(entry -> !requestedNames.contains(entry.getKey()))
                     .map(Map.Entry::getValue)
@@ -282,26 +308,22 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
                         budget.getId(), type.name(),
                         toDelete.stream().map(BudgetCategory::getId).toList());
 
-                // 먼저 BudgetCategory 삭제
                 budgetCategoryRepository.deleteAllInBatch(toDelete);
 
-                // BudgetCategory 삭제 후 연결된 ConsumptionCategory도 고아이면 삭제
+                // 연관된 ConsumptionCategory도 고아이면 삭제
                 List<Long> categoryIds = toDelete.stream()
                         .map(bc -> bc.getConsumptionCategory().getId())
                         .distinct()
                         .toList();
 
-                // 고아 상태인지 확인 후 삭제
-                List<ConsumptionCategory> consumptionToDelete = consumptionCategoryRepository
-                        .findAllById(categoryIds)
-                        .stream()
+                List<ConsumptionCategory> orphaned = consumptionCategoryRepository.findAllById(categoryIds).stream()
                         .filter(cat -> budgetCategoryRepository.countByConsumptionCategory(cat) == 0)
                         .toList();
 
-                if (!consumptionToDelete.isEmpty()) {
+                if (!orphaned.isEmpty()) {
                     log.info("[카테고리 삭제] 삭제 대상(ConsumptionCategory)={}",
-                            consumptionToDelete.stream().map(ConsumptionCategory::getId).toList());
-                    consumptionCategoryRepository.deleteAllInBatch(consumptionToDelete);
+                            orphaned.stream().map(ConsumptionCategory::getId).toList());
+                    consumptionCategoryRepository.deleteAllInBatch(orphaned);
                 }
             }
         }
@@ -325,5 +347,9 @@ public class BudgetCommandServiceImpl implements BudgetCommandService {
         Budget newBudget = BudgetConverter.toBudgetEntity(user, 0);
 
         return budgetRepository.save(newBudget);
+    }
+
+    private boolean hasRoutineCategoryBudget(BudgetRequest.BudgetCreateDTO request) {
+        return request.getRoutineCategoryBudgets() != null && !request.getRoutineCategoryBudgets().isEmpty();
     }
 }

@@ -7,14 +7,17 @@ import com.server.money_touch.domain.consumptionRecord.dto.ConsumptionRecordRequ
 import com.server.money_touch.domain.consumptionRecord.dto.ConsumptionRecordResponse;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
+import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecordImage;
 import com.server.money_touch.domain.consumptionRecord.entity.TotalConsumption;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionCategory.ConsumptionCategoryRepository;
+import com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord.ConsumptionRecordImageRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord.ConsumptionRecordRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.totalConsumption.TotalConsumptionRepository;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.apiPayload.exception.GeneralException;
+import com.server.money_touch.global.constants.DefaultCategoryConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,10 +36,12 @@ public class ConsumptionRecordServiceImpl implements ConsumptionRecordService{
     private final ConsumptionCategoryRepository consumptionCategoryRepository;
     private final UserRepository userRepository;
     private final TotalConsumptionRepository totalConsumptionRepository;
+    private final ConsumptionRecordImageRepository consumptionRecordImageRepository;
 
     @Override
     @Transactional
-    public ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO createConsumptionRecord(Long userId, ConsumptionRecordRequest.ConsumptionRecordCreateDTO request){
+    public ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO createConsumptionRecord(
+            Long userId, ConsumptionRecordRequest.ConsumptionRecordCreateDTO request, String imageUrl){
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
@@ -49,7 +54,7 @@ public class ConsumptionRecordServiceImpl implements ConsumptionRecordService{
 
         // 2. 공개 여부 유효성
         if(Boolean.TRUE.equals(request.getIsPublic())){
-            if(request.getImageUrl() == null || request.getMemo() == null){
+            if(imageUrl == null || request.getMemo() == null){
                 throw new GeneralException(ErrorStatus._BAD_REQUEST);
             }
         }
@@ -61,7 +66,6 @@ public class ConsumptionRecordServiceImpl implements ConsumptionRecordService{
                 .amount(request.getAmount())
                 .content(request.getContent())
                 .isPublic(request.getIsPublic() != null && request.getIsPublic())
-                .imageUrl(request.getImageUrl())
                 .memo(request.getMemo())
                 .commentCount(0)
                 .wiseCount(0)
@@ -71,6 +75,17 @@ public class ConsumptionRecordServiceImpl implements ConsumptionRecordService{
                 .build();
 
         consumptionRecordRepository.save(record);
+
+
+        // 4. 이미지 엔티티 저장 (이미지가 있는 경우만)
+        if (imageUrl != null) {
+            ConsumptionRecordImage image = ConsumptionRecordImage.builder()
+                    .consumptionRecord(record)
+                    .name("record image")  // 필요 시 originalFilename 사용 가능
+                    .filePath(imageUrl)
+                    .build();
+            consumptionRecordImageRepository.save(image);
+        }
 
         // 4-1. 현재 연도와 월 기준으로 월 시작일과 종료일 계산
         LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
@@ -86,7 +101,6 @@ public class ConsumptionRecordServiceImpl implements ConsumptionRecordService{
 
         return new ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO(record.getId());
 
-
     }
 
     @Override
@@ -97,12 +111,22 @@ public class ConsumptionRecordServiceImpl implements ConsumptionRecordService{
 
         List<ConsumptionCategory> allCategories = consumptionCategoryRepository.findAllByUser(user);
 
+        // 순서 고정 리스트 사용
+        List<String> defaultOrder = DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES;
+
         return allCategories.stream()
                 .sorted(Comparator.comparingInt(cat -> {
                     CategoryType type = cat.getBudgetCategoryType();
-                    if (type == CategoryType.DEFAULT) return 0;
-                    if (type == CategoryType.CUSTOM) return 1;
-                    return 2; // ROUTINE_CATEGORY
+                    String name = cat.getBudgetCategoryName();
+
+                    if (type == CategoryType.DEFAULT) {
+                        int index = defaultOrder.indexOf(name);
+                        return index >= 0 ? index : Integer.MAX_VALUE;
+                    } else if (type == CategoryType.CUSTOM) {
+                        return 100; //
+                    } else {
+                        return 200; // ROUTINE_CATEGORY
+                    }
                 }))
                 .map(ConsumptionCategoryResponse.CategoryInfoDTO::fromEntity)
                 .collect(Collectors.toList());

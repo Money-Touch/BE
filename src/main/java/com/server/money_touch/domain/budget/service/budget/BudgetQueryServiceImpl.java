@@ -106,20 +106,22 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
         LocalDateTime startOfMonth = LocalDate.of(year, month, 1).atStartOfDay();
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
 
-        // 해당 월의 총 소비 금액 조회, 데이터가 없다면 생성
+        // 총 소비 금액 조회 (없으면 0으로 처리)
         TotalConsumption totalConsumption = totalConsumptionRepository
                 .findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
-                .orElseGet(() -> {
-                    TotalConsumption newConsumption = TotalConsumptionConverter.toTotalConsumption(user);
-                    return totalConsumptionRepository.save(newConsumption);
-                });
+                .orElse(null);
 
-        // 해당 월의 예산 조회
-        Budget budget = budgetRepository.findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
-                .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_EXIST));
+        int totalAmount = (totalConsumption != null) ? totalConsumption.getTotalConsumptionAmount() : 0;
 
-        Long budgetId = budget.getId();
+        // 예산 조회 (없으면 budgetId = null)
+        // 회원가입 및 1일에 데이터가 생성되기 때문에 createdAt과 updatedAt이 같으면 아직 사용자가 직접 등록하지 않은 예산으로 간주
+        Budget budget = budgetRepository
+                .findByUserAndCreatedAtBetweenAndCreatedEqualsUpdated(user, startOfMonth, endOfMonth)
+                .filter(b -> b.getBudgetTotal() > 0)
+                .orElse(null);
+
+        Long budgetId = (budget != null) ? budget.getId() : null;
         log.info("예산 아이디 및 총 소비 금액 조회 - userId: {}, budgetId: {}", userId, budgetId);
-        return BudgetConverter.toTotalConsumptionResultDto(budgetId, totalConsumption.getTotalConsumptionAmount());
+        return BudgetConverter.toTotalConsumptionResultDto(budgetId, totalAmount);
     }
 }

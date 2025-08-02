@@ -15,15 +15,22 @@ public class NotificationConverter {
             return null;
         }
 
+        // 게시글 기반 알림 타입이면 imageUrl 포함
+        String typeName = notification.getNotificationType().getNotificationTypeName();
+        boolean isPostRelated = typeName.equals("COMMENT")
+                || typeName.equals("WISE")
+                || typeName.equals("WASTE");
+
         return NotificationResponse.NotificationDetailDTO.builder()
                 .notificationId(notification.getId())
                 .title(notification.getTitle())
                 .content(notification.getContent())
                 .notificationTypeName(notification.getNotificationType().getNotificationTypeName())
                 .imgUrl(notification.getNotificationType().getImgUrl())
-                .senderId(notification.getSenderId())
+                .senderName(notification.getSenderName())
                 .targetId(notification.getTargetId())
                 .isRead(notification.getIsRead())
+                .imageUrl(isPostRelated ? notification.getImageUrl() : null)
                 .createdAt(notification.getCreatedAt())
                 .build();
 
@@ -37,7 +44,6 @@ public class NotificationConverter {
                     .notificationList(List.of())
                     .notificationListSize(0)
                     .isFirst(true)
-                    .isLast(true)
                     .hasNext(false)
                     .nextCursorId(null)
                     .build();
@@ -57,7 +63,6 @@ public class NotificationConverter {
                 .notificationList(detailDTOList)
                 .notificationListSize(detailDTOList.size())
                 .isFirst(notificationSlice.isFirst())
-                .isLast(notificationSlice.isLast())
                 .hasNext(notificationSlice.hasNext())
                 .nextCursorId(nextCursorId)
                 .build();

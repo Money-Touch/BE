@@ -16,9 +16,7 @@ public class RoutineConverter {
                 .user(user)
                 .budget(budget)
                 .routineName(routineCreateDTO.getRoutineName())
-                .routineContent("") // 루틴 설명은 삭제 됐기 때문에 추후 수정
                 .routineImageUrl(routineCreateDTO.getRoutineImgUrl())
-                .viewCount(0)
                 .build();
     }
 
@@ -47,6 +45,18 @@ public class RoutineConverter {
     // 내 소비 루틴 목록 조회 응답 DTO
     public static RoutineResponse.MyRoutineListDTO toMyRoutineListDTO(List<RoutineResponse.RoutineThumbnailDTO> routineList, Slice<RoutineResponse.RoutineThumbnailDTO> slice) {
         return RoutineResponse.MyRoutineListDTO.builder()
+                .routineList(routineList)
+                .routineListSize(routineList.size())
+                .isFirst(slice.isFirst())
+                .isLast(slice.isLast())
+                .hasNext(slice.hasNext())
+                .nextCursorId(slice.hasNext() ? routineList.get(routineList.size() - 1).getRoutineId() : null)
+                .build();
+    }
+
+    // 전체 소비 루틴 목록 조회 응답 DTO
+    public static RoutineResponse.AllRoutineListDTO toAllRoutineListDTO(List<RoutineResponse.RoutineListDTO> routineList, Slice<RoutineResponse.RoutineListDTO> slice) {
+        return RoutineResponse.AllRoutineListDTO.builder()
                 .routineList(routineList)
                 .routineListSize(routineList.size())
                 .isFirst(slice.isFirst())

@@ -10,6 +10,7 @@ import com.server.money_touch.domain.consumptionRecord.entity.QConsumptionRecord
 import com.server.money_touch.domain.consumptionRecord.projection.DailyAmountProjection;
 import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemDetailProjection;
 import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemProjection;
+import com.server.money_touch.domain.fixedConsumption.entity.QFixedConsumption;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -30,41 +31,65 @@ public class ConsumptionRecordRepositoryImpl implements ConsumptionRecordReposit
 
     QConsumptionRecord record = QConsumptionRecord.consumptionRecord;
     QConsumptionCategory category = QConsumptionCategory.consumptionCategory;
+    QFixedConsumption fixed = QFixedConsumption.fixedConsumption;
 
     /**
-     * 사용자의 특정 날짜에 해당하는 소비 기록 목록을 조회합니다.
-     * - 소비 기록에는 소비 금액, 내용, 카테고리명이 포함됩니다.
-     * - 소비 시간(consumeDate) 기준 오름차순(= 먼저 소비된 순서)으로 정렬됩니다.
+     * 특정 날짜의 소비 내역을 커서 기반으로 페이징하여 조회합니다.
+     *
+     * - 기준 날짜(start ~ end) 사이의 소비 내역 중에서
+     * - (consumeDate, id) 기준으로 내림차순 정렬된 데이터에 대해
+     * - 커서 기반 페이징을 적용하여 Slice 형태로 반환합니다.
      *
      * @param userId 사용자 ID
-     * @param date 조회할 날짜 (yyyy-MM-dd)
-     * @return DailyConsumptionItemProjection 리스트 (DTO 형태)
+     * @param start 해당 날짜의 시작 시각 (예: 2025-07-31T00:00)
+     * @param end 해당 날짜의 종료 시각 (예: 2025-07-31T23:59:59)
+     * @param cursorId 마지막으로 조회한 소비 기록 ID (null이면 첫 페이지)
+     * @param cursorConsumeDate cursorId에 해당하는 소비 일시
+     * @param pageSize 한 페이지당 데이터 개수
+     * @return Slice<DailyConsumptionItemDetailProjection>
      */
     @Override
-    public List<DailyConsumptionItemDetailProjection> findDailyConsumptionItems(Long userId, LocalDate date) {
-        // 입력된 날짜의 시작 시간 (00:00:00)
-        LocalDateTime startOfDay = date.atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
+    public Slice<DailyConsumptionItemDetailProjection> findDailyConsumptionItemsWithCursor(
+            Long userId, LocalDateTime start, LocalDateTime end,
+            Long cursorId, LocalDateTime cursorConsumeDate, int pageSize) {
 
-        log.debug("소비 내역 조회 - 날짜: {}", startOfDay.toLocalDate());
+        // 기본 조건: 사용자 ID 일치 + 조회일 범위 내 소비 내역
+        BooleanExpression baseCondition = record.user.id.eq(userId)
+                .and(record.consumeDate.between(start, end));
 
-        // 최신순 정렬 + 필요한 컬럼만 조회하여 Projection 반환
-        return queryFactory
+        // 커서 조건: (consumeDate, id) 기준으로 이전 데이터 조회
+        BooleanExpression cursorPredicate = null;
+        if (cursorId != null && cursorConsumeDate != null) {
+            cursorPredicate = record.consumeDate.lt(cursorConsumeDate)
+                    .or(record.consumeDate.eq(cursorConsumeDate).and(record.id.lt(cursorId)));
+        }
+
+        // 쿼리 실행: 필요한 컬럼만 projection으로 조회
+        List<DailyConsumptionItemDetailProjection> results = queryFactory
                 .select(Projections.fields(
                         DailyConsumptionItemDetailProjection.class,
                         record.id.as("consumptionRecordId"),
-                        category.budgetCategoryName.as("categoryName"),
+                        Expressions.cases()
+                                .when(record.isFixed.isTrue()).then("고정비")
+                                .otherwise(category.budgetCategoryName).as("categoryName"),
                         record.content,
                         record.amount
                 ))
                 .from(record)
                 .join(record.consumptionCategory, category)
-                .where(
-                        record.user.id.eq(userId),
-                        record.consumeDate.between(startOfDay, endOfDay)
-                )
+                .where(baseCondition.and(cursorPredicate)) // 기본 조건 + 커서 조건
                 .orderBy(record.consumeDate.desc(), record.id.desc()) // 최신순 정렬
+                .limit(pageSize + 1) // 다음 페이지 존재 여부 확인을 위한 +1
                 .fetch();
+
+        // hasNext 판단 및 초과한 1개 제거
+        boolean hasNext = results.size() > pageSize;
+        if (hasNext) {
+            results.remove(results.size() - 1);
+        }
+
+        // SliceImpl로 반환 (Pageable은 의미상으로만 사용)
+        return new SliceImpl<>(results, PageRequest.of(0, pageSize), hasNext);
     }
 
 
@@ -127,7 +152,9 @@ public class ConsumptionRecordRepositoryImpl implements ConsumptionRecordReposit
                         DailyConsumptionItemProjection.class,
                         record.id.as("consumptionRecordId"),
                         record.consumeDate,
-                        category.budgetCategoryName.as("categoryName"),
+                        Expressions.cases()
+                                .when(record.isFixed.isTrue()).then("고정비")
+                                .otherwise(category.budgetCategoryName).as("categoryName"),
                         record.content,
                         record.amount
                 ))
