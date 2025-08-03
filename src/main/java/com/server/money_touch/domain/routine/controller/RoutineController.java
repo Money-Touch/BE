@@ -175,25 +175,27 @@ public class RoutineController {
         return ApiResponse.onSuccess(response);
     }
 
-    // 소비 루틴 예산 반영 전 수정/추가
+    // 소비 루틴 예산 반영 전 수정/추가(미리 보기)_
     @Operation(
-            summary = "소비 루틴 예산 반영 전 수정/추가 API",
-            description = "내 예산에 반영-> 네 를 클릭하면 보여주는 api 입니다."+
-                    "사용자가 갖고 있는 기존 카테고리는 '카테고리별 예산', 새로운 카테고리는 '소비 루틴 카테고리' 보여줍니다."
+            summary = "소비 루틴 예산 반영 전 수정/추가(미리보기) API",
+            description = "해당 API는 소비 루틴을 예산에 반영하기 전에, 적용 시 변경될 카테고리별 금액을 미리 확인할 수 있도록 합니다. " +
+                    "'내 예산에 반영 → 네'를 선택하기 전, 기존 예산에 포함된 카테고리는 '카테고리별 예산'으로, 새롭게 추가되는 카테고리는 '소비 루틴 카테고리'로 구분하여 보여줍니다."
     )
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_ALREADY_APPLIED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
     @Parameters({
-            @Parameter(name = "routineId", description = "조회하려는 소비 루틴 아이디", example = "1", required = true),
+            @Parameter(name = "routineId", description = "가져오려는 소비 루틴 아이디", example = "1", required = true),
     })
     @GetMapping("/list/{routineId}/apply-info")
-    public ApiResponse<RoutineResponse.ApplyRoutineInfoDTO> getRoutineApplyInfo(@PathVariable Long routineId){
+    public ApiResponse<RoutineResponse.ApplyRoutineInfoDTO> getRoutineApplyInfo(@PathVariable Long routineId, HttpServletRequest servletRequest) {
 
-        RoutineResponse.ApplyRoutineInfoDTO response = RoutineResponse.ApplyRoutineInfoDTO.builder().build();
+        Long userId = authUtil.getUserIdFromRequest(servletRequest);
+        RoutineResponse.ApplyRoutineInfoDTO response = routineQueryService.getRoutineApplyInfo(userId, routineId);
         return ApiResponse.onSuccess(response);
 
     }

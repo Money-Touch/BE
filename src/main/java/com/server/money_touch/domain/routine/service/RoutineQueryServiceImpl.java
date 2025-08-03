@@ -13,6 +13,7 @@ import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
 import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
 import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
+import com.server.money_touch.global.constants.DefaultCategoryConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -158,4 +160,87 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
         Slice<RoutineResponse.RoutineListDTO> slice = routineRepository.searchRoutinesByKeyword(keyword, cursorId, pageable);
         return RoutineConverter.toAllRoutineListDTO(slice.getContent(), slice);
     }
+
+    // 타인의 소비 루틴을 내 예산에 반영 시 미리보기
+    @Override
+    public RoutineResponse.ApplyRoutineInfoDTO getRoutineApplyInfo(Long userId, Long routineId) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 소비 루틴 조회 (자신의 루틴은 허용하지 않음)
+        Routine routine = routineRepository.findById(routineId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.ROUTINE_NOT_FOUND));
+
+        if (routine.getUser().getId().equals(userId)) {
+            throw new ErrorHandler(ErrorStatus.ROUTINE_PREVIEW_NOT_ALLOWED);
+        }
+
+        // 3. 해당 루틴의 예산 생성 월 기준으로 내 예산 조회
+        Budget budget = budgetRepository.findByUserAndCreatedMonth(user, routine.getBudget().getCreatedMonth())
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_FOUND));
+
+        if (Boolean.TRUE.equals(budget.getIsFromRoutine())) {
+            throw new ErrorHandler(ErrorStatus.ROUTINE_ALREADY_APPLIED);
+        }
+
+        // 4. 예산 카테고리 로드 (N+1 방지)
+        List<BudgetCategory> myCategories = budgetCategoryRepository.findByBudgetWithConsumptionCategory(budget);
+        List<BudgetCategory> routineCategories = budgetCategoryRepository.findByBudgetWithConsumptionCategory(routine.getBudget());
+
+        // 5. 이름 기준으로 Map 변환
+        Map<String, BudgetCategory> routineCategoryMap = routineCategories.stream()
+                .collect(Collectors.toMap(
+                        rc -> rc.getConsumptionCategory().getBudgetCategoryName(),
+                        Function.identity()
+                ));
+
+        Map<String, BudgetCategory> myCategoryMap = myCategories.stream()
+                .collect(Collectors.toMap(
+                        bc -> bc.getConsumptionCategory().getBudgetCategoryName(),
+                        Function.identity()
+                ));
+
+        Set<String> defaultNames = new HashSet<>(DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES);
+
+        // 6. Default 카테고리 구성 (무조건 포함)
+        List<RoutineResponse.ApplyCategoryBudgetDTO> defaultCategoryBudgets =
+                DefaultCategoryConstants.DEFAULT_CATEGORY_NAMES.stream()
+                        .map(name -> {
+                            int amount = routineCategoryMap.containsKey(name)
+                                    ? routineCategoryMap.get(name).getBudgetCategoryMoney()
+                                    : 0;
+                            return RoutineConverter.toCategoryDTO(name, amount, CategoryType.DEFAULT);
+                        })
+                        .collect(Collectors.toList());
+
+        // 7. 루틴에서만 존재하는 사용자 정의 카테고리 (default 제외)
+        List<RoutineResponse.ApplyCategoryBudgetDTO> routineCategoryBudgets = routineCategories.stream()
+                .filter(rc -> !defaultNames.contains(rc.getConsumptionCategory().getBudgetCategoryName()))
+                .map(RoutineConverter::toRoutineCategoryDTO)
+                .collect(Collectors.toList());
+
+        // 8. 내 예산에만 존재하고 루틴에는 없는 항목 → 금액 0으로 처리
+        List<RoutineResponse.ApplyCategoryBudgetDTO> customCategoryBudgets = myCategories.stream()
+                .filter(mc -> {
+                    String name = mc.getConsumptionCategory().getBudgetCategoryName();
+                    return !routineCategoryMap.containsKey(name) && !defaultNames.contains(name);
+                })
+                .map(mc -> RoutineConverter.toCategoryDTO(
+                        mc.getConsumptionCategory().getBudgetCategoryName(),
+                        0,
+                        mc.getConsumptionCategory().getBudgetCategoryType())
+                )
+                .collect(Collectors.toList());
+
+        log.info("소비 루틴 예산 반영 미리보기 완료 - userId: {}, routineId: {}", userId, routineId);
+
+        return RoutineConverter.toApplyRoutineInfoDTO(
+                routine.getBudget().getBudgetTotal(),
+                defaultCategoryBudgets,
+                customCategoryBudgets,
+                routineCategoryBudgets
+        );
+    }
+
 }

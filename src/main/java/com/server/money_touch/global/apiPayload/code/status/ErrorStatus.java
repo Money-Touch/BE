@@ -61,7 +61,10 @@ public enum ErrorStatus implements BaseErrorCode {
     // 소비 루틴 관련 에러
     ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST, "ROUTINE4001", "아이디와 일치하는 소비 루틴이 없습니다."),
     ROUTINE_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "ROUTINE4002", "한 달 소비 루틴 등록 횟수를 초과하였습니다."),
+    ROUTINE_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "ROUTINE4003", "한 달 소비 루틴 가져오기 횟수를 초과하였습니다."),
+    ROUTINE_PREVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "ROUTINE4004", "자신의 소비 루틴은 미리보기로 가져올 수 없습니다."),
     ERROR_UPLOAD_ROUTINE_IMG(HttpStatus.INTERNAL_SERVER_ERROR, "ROUTINE5001", "소비 루틴 이미지 등록에 실패하였습니다."),
+
 
     // 알림 관련 에러
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "존재하지 않는 알림입니다."),

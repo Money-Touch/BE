@@ -20,4 +20,6 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                                                                           @Param("start") LocalDateTime start,
                                                                           @Param("end") LocalDateTime end);
 
+    Optional<Budget> findByUserAndCreatedMonth(User user, String createdMonth);
+
 }

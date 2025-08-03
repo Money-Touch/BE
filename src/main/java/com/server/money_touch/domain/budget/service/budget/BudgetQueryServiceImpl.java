@@ -65,6 +65,7 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
                         bc -> BudgetResponse.DefaultCategoryBudgetResponse.builder()
                                 .categoryName(bc.getConsumptionCategory().getBudgetCategoryName())
                                 .amount(bc.getBudgetCategoryMoney())
+                                .categoryType(bc.getConsumptionCategory().getBudgetCategoryType())
                                 .build());
 
         List<BudgetResponse.CustomCategoryBudgetResponse> customCategories =
@@ -72,6 +73,7 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
                         bc -> BudgetResponse.CustomCategoryBudgetResponse.builder()
                                 .categoryName(bc.getConsumptionCategory().getBudgetCategoryName())
                                 .amount(bc.getBudgetCategoryMoney())
+                                .categoryType(bc.getConsumptionCategory().getBudgetCategoryType())
                                 .build());
 
         List<BudgetResponse.RoutineCategoryBudgetResponse> routineCategories =
@@ -79,6 +81,7 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
                         bc -> BudgetResponse.RoutineCategoryBudgetResponse.builder()
                                 .categoryName(bc.getConsumptionCategory().getBudgetCategoryName())
                                 .amount(bc.getBudgetCategoryMoney())
+                                .categoryType(bc.getConsumptionCategory().getBudgetCategoryType())
                                 .build());
 
         // 4. 응답 DTO 구성
