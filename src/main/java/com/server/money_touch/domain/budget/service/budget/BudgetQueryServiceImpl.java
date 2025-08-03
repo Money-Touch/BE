@@ -118,9 +118,7 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
 
         // 예산 조회 (없으면 budgetId = null)
         // 회원가입 및 1일에 데이터가 생성되기 때문에 createdAt과 updatedAt이 같으면 아직 사용자가 직접 등록하지 않은 예산으로 간주
-        Budget budget = budgetRepository
-                .findByUserAndCreatedAtBetweenAndCreatedEqualsUpdated(user, startOfMonth, endOfMonth)
-                .filter(b -> b.getBudgetTotal() > 0)
+        Budget budget = budgetRepository.findRegisteredBudgetInMonthNative(userId, startOfMonth, endOfMonth)
                 .orElse(null);
 
         Long budgetId = (budget != null) ? budget.getId() : null;
