@@ -18,8 +18,8 @@ public class Routine extends BaseEntity {
     @Column(nullable = false)
     private String routineImageUrl;
 
-//    @Column(columnDefinition = "INT DEFAULT 0",  nullable = false)
-//    private Integer routineTotalAmount; // 소비 루틴 총 금액
+    @Column(columnDefinition = "INT DEFAULT 0",  nullable = false)
+    private Integer routineTotalAmount; // 소비 루틴 총 금액
 
     // 소비루틴-예산 다대일
     @ManyToOne(fetch = FetchType.LAZY)
