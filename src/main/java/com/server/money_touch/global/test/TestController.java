@@ -3,53 +3,100 @@ package com.server.money_touch.global.test;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
 public class TestController {
 
-    private final RedisTemplate<String, String> stringRedisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @GetMapping("/test")
     public String test() {
         return "test";
     }
 
-    @GetMapping("/test-redis/set")
-    public String testRedis(@RequestParam String key, @RequestParam String value) {
+    @PostMapping("/set")
+    public ResponseEntity<?> setValue(@RequestParam String key,
+                                      @RequestParam String value,
+                                      @RequestParam(required = false) Long expireSeconds) {
         try {
-            // Redis에 데이터 저장
-            stringRedisTemplate.opsForValue().set(key, value);
-
-            // Redis에서 데이터 가져오기
-            String redisValue = stringRedisTemplate.opsForValue().get(key);
-
-            return redisValue != null ? "Redis 연결 성공! Value: " + redisValue : "Redis 연결 실패!";
+            if (expireSeconds != null) {
+                redisTemplate.opsForValue().set(key, value, Duration.ofSeconds(expireSeconds));
+            } else {
+                redisTemplate.opsForValue().set(key, value);
+            }
+            return ResponseEntity.ok(Map.of("status", "success", "key", key, "value", value));
         } catch (Exception e) {
-            log.error(e.getMessage());
-            return "Redis 오류: " + e.getMessage();
+            log.error("Redis SET 오류: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
 
-    @GetMapping("/test-redis/exist")
-    public String checkKey(@RequestParam String key) {
+    @GetMapping("/get")
+    public ResponseEntity<?> getValue(@RequestParam String key) {
         try {
-            // Redis에 해당 키가 존재하는지 확인
-            Boolean exists = stringRedisTemplate.hasKey(key);
-
-            // 결과 반환
-            if (exists != null && exists) {
-                return "키가 Redis에 존재합니다: " + key;
-            } else {
-                return "키가 Redis에 존재하지 않습니다: " + key;
+            String value = redisTemplate.opsForValue().get(key);
+            if (value == null) {
+                return ResponseEntity.status(404).body(Map.of("message", "Key not found"));
             }
+            return ResponseEntity.ok(Map.of("key", key, "value", value));
         } catch (Exception e) {
-            log.error("Redis 오류: ", e);
-            return "Redis 오류: " + e.getMessage();
+            log.error("Redis GET 오류: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/exists")
+    public ResponseEntity<?> checkExistence(@RequestParam String key) {
+        try {
+            boolean exists = Boolean.TRUE.equals(redisTemplate.hasKey(key));
+            return ResponseEntity.ok(Map.of("key", key, "exists", exists));
+        } catch (Exception e) {
+            log.error("Redis EXISTS 오류: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteKey(@RequestParam String key) {
+        try {
+            Boolean deleted = redisTemplate.delete(key);
+            return ResponseEntity.ok(Map.of("key", key, "deleted", deleted));
+        } catch (Exception e) {
+            log.error("Redis DELETE 오류: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/ttl")
+    public ResponseEntity<?> getTTL(@RequestParam String key) {
+        try {
+            Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+            if (ttl == null || ttl < 0) {
+                return ResponseEntity.ok(Map.of("key", key, "ttl", "No expiration or key not found"));
+            }
+            return ResponseEntity.ok(Map.of("key", key, "ttl_seconds", ttl));
+        } catch (Exception e) {
+            log.error("Redis TTL 오류: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/expire")
+    public ResponseEntity<?> expireKey(@RequestParam String key, @RequestParam Long seconds) {
+        try {
+            Boolean result = redisTemplate.expire(key, seconds, TimeUnit.SECONDS);
+            return ResponseEntity.ok(Map.of("key", key, "expireSet", result));
+        } catch (Exception e) {
+            log.error("Redis EXPIRE 오류: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
 }
