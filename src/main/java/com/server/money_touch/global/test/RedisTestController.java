@@ -1,5 +1,6 @@
 package com.server.money_touch.global.test;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -10,17 +11,13 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@Tag(name = "test-controller", description = "Redis Test(관리자용)")
 @Slf4j
 @RequiredArgsConstructor
-@RestController
-public class TestController {
+@RestController("/redis")
+public class RedisTestController {
 
     private final RedisTemplate<String, String> redisTemplate;
-
-    @GetMapping("/test")
-    public String test() {
-        return "test";
-    }
 
     @PostMapping("/set")
     public ResponseEntity<?> setValue(@RequestParam String key,
