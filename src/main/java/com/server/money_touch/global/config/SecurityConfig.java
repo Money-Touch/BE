@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(
                                 "/api/user/signup/local", "/api/user/login/local","/auth/login/kakao/**", // 로그인, 회원가입
-                                "/", "/index.html", "/css/**", "/js/**", "/images/**", "/test", // Spring Boot의 정적 리소스 기본 경로
+                                "/", "/index.html", "/css/**", "/js/**", "/images/**", "/actuator/health", // Spring Boot의 정적 리소스 기본 경로 및 test
                                 "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", // Swaggger 문서
                                 "/api/test/s3/upload") // 프로필 이미지 업로드
                         .permitAll()
