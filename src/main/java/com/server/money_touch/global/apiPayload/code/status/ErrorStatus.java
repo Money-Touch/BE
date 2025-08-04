@@ -19,6 +19,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 유저 관련 에러
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4001", "아이디와 일치하는 사용자가 없습니다."),
 
+    // 유저 상세정보 관련 에러
+    ALREADY_REGISTERED_USER_DETAIL(HttpStatus.BAD_REQUEST,"DETAIL4001", "이미 유저 상세정보가 등록되어 있습니다."),
+
     // 토큰 관련 에러
     PARSING_ERROR(HttpStatus.BAD_REQUEST, "A001", "토큰 파싱 중 오류가 발생했습니다."),
 

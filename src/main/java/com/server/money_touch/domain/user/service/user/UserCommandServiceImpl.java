@@ -13,12 +13,17 @@ import com.server.money_touch.domain.user.dto.UserResponse;
 import com.server.money_touch.domain.user.entity.CustomUserDetails;
 import com.server.money_touch.domain.user.entity.LocalLogin;
 import com.server.money_touch.domain.user.entity.User;
+import com.server.money_touch.domain.user.entity.UserDetail;
 import com.server.money_touch.domain.user.enums.AuthType;
 import com.server.money_touch.domain.user.enums.Role;
+import com.server.money_touch.domain.user.repository.user.UserDetailRepository;
 import com.server.money_touch.domain.user.repository.user.UserRepository;
 
 //import com.server.money_touch.global.external.kakao.KakaoService;
 //import com.server.money_touch.global.external.kakao.dto.KakaoUserInfo;
+import com.server.money_touch.global.apiPayload.ApiResponse;
+import com.server.money_touch.global.apiPayload.code.status.ErrorStatus;
+import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
 import com.server.money_touch.global.config.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +46,36 @@ import java.util.List;
 public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
+    private final UserDetailRepository userDetailRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final BudgetCommandService budgetCommandService;
     private final TotalConsumptionRepository totalConsumptionRepository;
+
+    // 유저 상세정보 등록
+    @Transactional
+    @Override
+    public UserResponse.UserDetailCreateResultDTO saveUserDetails(Long userId, UserRequest.UserDetailCreateDTO request){
+
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 이미 상세정보가 등록되어 있는지 확인
+        if (user.getUserDetail() != null) {
+            throw new ErrorHandler(ErrorStatus.ALREADY_REGISTERED_USER_DETAIL);
+        }
+
+        // 유저 상세정보 생성및 저장
+        UserDetail userDetail = UserConverter.createUserDetail(user, request);
+        userDetailRepository.save(userDetail);
+
+        // 연관 관계 설정 (주인 엔티티인 user에 설정)
+        user.setUserDetail(userDetail);
+
+        log.info("유저 상세정보 등록 완료 - userId : {}, userDetail : {}", userId, userDetail.getId());
+        return UserConverter.toUserDetailCreateResultDTO(userDetail.getId());
+    }
 
     /**
      * 로컬 회원가입
@@ -55,7 +86,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         log.info("로컬 회원가입 시작 - email: {}", request.getEmail());
 
         // 이메일 중복 검증
-        validateDuplicateEmail(request.getEmail());
+        // validateDuplicateEmail(request.getEmail()); TODO: 이메일 인증요청시 중복검사 하기
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());

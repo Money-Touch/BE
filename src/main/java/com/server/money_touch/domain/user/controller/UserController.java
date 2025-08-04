@@ -46,12 +46,10 @@ public class UserController{
     })
     @PostMapping("/detail")
     public ApiResponse<UserResponse.UserDetailCreateResultDTO> createUserDetail(
-            //@AuthenticationPrincipal UserPrincipal userPrincipal,
-            @Valid @RequestBody UserRequest.UserDetailCreateDTO request){
-            //Long userId = userPrincipal.getId(); // AccessToken에서 식별된 유저 ID
-        UserResponse.UserDetailCreateResultDTO response = UserResponse.UserDetailCreateResultDTO.builder()
-                .userId(1L)
-                .build();
+            @Valid @RequestBody UserRequest.UserDetailCreateDTO request, HttpServletRequest servletRequest){
+
+        Long userId = authUtil.getUserIdFromRequest(servletRequest);
+        UserResponse.UserDetailCreateResultDTO response = userCommandService.saveUserDetails(userId, request);
         return ApiResponse.onSuccess(response);
     }
 

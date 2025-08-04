@@ -1,6 +1,7 @@
 package com.server.money_touch.domain.user.converter;
 
 import com.server.money_touch.domain.badge.entity.Badge;
+import com.server.money_touch.domain.user.dto.UserRequest;
 import com.server.money_touch.domain.user.dto.UserResponse;
 import com.server.money_touch.domain.user.entity.LocalLogin;
 import com.server.money_touch.domain.user.entity.SocialLogin;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 public class UserConverter {
 
     // 로컬 회원가입용 User 생성
-    public static User createLocalUser(String email, String encodedPassword, String age, Gender gender, String job, Boolean isIncome) {
+    public static User createLocalUser(String email, String encodedPassword, UserRequest.UserDetailCreateDTO requestDTO) {
         // User 엔티티 생성
         User user = User.builder()
                 .email(email)
@@ -24,21 +25,19 @@ public class UserConverter {
                 .role(Role.USER)
                 .build();
 
-        // UserDetail 생성
-        UserDetail userDetail = createUserDetail(age, gender, job, isIncome);
-        user.setUserDetail(userDetail);
-
-        // LocalLogin 생성
+        // UserDetail 및 LocalLogin 생성 (user에 연관관계 주입)
+        UserDetail userDetail = createUserDetail(user, requestDTO);
         LocalLogin localLogin = createLocalLogin(encodedPassword, user);
+
+        // 연관 엔티티 설정
+        user.setUserDetail(userDetail);
         user.setLocalLogin(localLogin);
 
         return user;
     }
 
-    /**
-     * 소셜 회원가입용 User 생성
-     */
-    public static User createSocialUser(String email, String kakaoKey, String age, Gender gender, String job, Boolean isIncome) {
+    // 소셜 회원가입용 User 생성
+    public static User createSocialUser(String email, String kakaoKey, UserRequest.UserDetailCreateDTO requestDTO) {
         // User 엔티티 생성
         User user = User.builder()
                 .email(email)
@@ -46,18 +45,17 @@ public class UserConverter {
                 .role(Role.USER)
                 .build();
 
-        // UserDetail 생성
-        UserDetail userDetail = createUserDetail(age, gender, job, isIncome);
-        user.setUserDetail(userDetail);
-
-        // SocialLogin 생성
+        // UserDetail 및 SocialLogin 생성
+        UserDetail userDetail = createUserDetail(user, requestDTO);
         SocialLogin socialLogin = createSocialLogin(kakaoKey, user);
+
+        user.setUserDetail(userDetail);
         user.setSocialLogin(socialLogin);
 
         return user;
     }
 
-    // ✅ 새로 추가: User를 UserCreateResultDTO로 변환
+    // ✅ User → DTO 변환
     public static UserResponse.UserCreateResultDTO toUserCreateResultDTO(User user) {
         return UserResponse.UserCreateResultDTO.builder()
                 .userId(user.getId())
@@ -65,39 +63,38 @@ public class UserConverter {
                 .build();
     }
 
-    /**
-     * UserDetail 생성
-     */
-    public  static UserDetail createUserDetail(String age, Gender gender, String job, Boolean isIncome) {
+    // ✅ 유저 상세정보 엔티티 생성 (User 참조 포함)
+    public static UserDetail createUserDetail(User user, UserRequest.UserDetailCreateDTO requestDTO) {
         return UserDetail.builder()
-                .age(age)
-                .gender(gender)
-                .job(job)
-                .isIncome(isIncome)
+                .user(user)
+                .gender(requestDTO.getGender())
+                .job(requestDTO.getJob())
+                .age(requestDTO.getAge())
+                .isIncome(requestDTO.getIsIncome())
                 .build();
     }
 
-    /**
-     * LocalLogin 생성
-     */
+    // 유저 상세정보 등록 응답 생성
+    public static UserResponse.UserDetailCreateResultDTO toUserDetailCreateResultDTO(Long userDetailId) {
+        return UserResponse.UserDetailCreateResultDTO.builder()
+                .userDetailId(userDetailId)
+                .build();
+    }
+
+    // ✅ 로컬 로그인 엔티티 생성
     public static LocalLogin createLocalLogin(String encodedPassword, User user) {
-        LocalLogin localLogin = LocalLogin.builder()
+        return LocalLogin.builder()
+                .user(user)
                 .password(encodedPassword)
                 .build();
-        localLogin.setUser(user);
-        return localLogin;
     }
 
-    /**
-     * SocialLogin 생성
-     */
+    // ✅ 소셜 로그인 엔티티 생성
     public static SocialLogin createSocialLogin(String kakaoKey, User user) {
-        SocialLogin socialLogin = SocialLogin.builder()
+        return SocialLogin.builder()
+                .user(user)
                 .KakaoKey(kakaoKey)
-                .connectedAt(LocalDateTime.now())
                 .build();
-        socialLogin.setUser(user);
-        return socialLogin;
     }
 
     // 마이페이지용
