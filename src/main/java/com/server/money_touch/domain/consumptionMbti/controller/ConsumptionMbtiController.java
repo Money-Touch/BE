@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +44,8 @@ public class ConsumptionMbtiController {
             @Parameter(name = "result" , description = "조회하려는 소비 MBTI", example = "PTG" , required = true)
     })
     @GetMapping("/result")
-    public ApiResponse<ConsumptionMbtiResponse.ConsumptionMbtiResultDTO> getMbti(@RequestParam @NotBlank(message = "결과값은 필수입니다.") String result) {
-        var response = consumptionMbtiService.getConsumptionMbti(result);
+    public ApiResponse<ConsumptionMbtiResponse.ConsumptionMbtiResultDTO> getMbti(@RequestParam @NotBlank(message = "결과값은 필수입니다.") String result, HttpServletRequest request) {
+        var response = consumptionMbtiService.getConsumptionMbti(result, request);
         return ApiResponse.onSuccess(response);
     }
 
