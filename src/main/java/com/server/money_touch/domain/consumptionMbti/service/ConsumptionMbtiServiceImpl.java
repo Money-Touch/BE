@@ -23,8 +23,8 @@ public class ConsumptionMbtiServiceImpl implements ConsumptionMbtiService{
 
 
     @Override
-    public ConsumptionMbtiResponse.ConsumptionMbtiResultDTO getConsumptionMbti(String code) {
-        ConsumptionMbti consumptionMbti = consumptionMbtiRepository.findByCode(code)
+    public ConsumptionMbtiResponse.ConsumptionMbtiResultDTO getConsumptionMbti(String result) {
+        ConsumptionMbti consumptionMbti = consumptionMbtiRepository.findByResult(result)
                 .orElseThrow(()-> new ErrorHandler(ErrorStatus.MBTI_NOT_FOUND));
         return ConsumptionMbtiConveter.toResultDTO(consumptionMbti);
     }

@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ConsumptionMbtiRepository extends CrudRepository<ConsumptionMbti, Long> {
     // 소비 MBTI 존재 유무 확인
-    Optional <ConsumptionMbti> findByCode(String code);
+    Optional <ConsumptionMbti> findByResult(String result);
 }
