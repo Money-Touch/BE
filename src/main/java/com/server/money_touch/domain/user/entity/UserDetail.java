@@ -27,7 +27,7 @@ public class UserDetail {
     private String job;
 
     @Column(nullable = false)
-    private Boolean isIncome;
+    private String isIncome;
 
     // 회원-회원상세 일대일
     @OneToOne(mappedBy = "userDetail", fetch = FetchType.LAZY)
