@@ -27,6 +27,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import static com.server.money_touch.global.apiPayload.code.status.ErrorStatus.CONSUMPTION_CATEGORY_NAME_MISSING_IN_REQUEST;
+
 @Tag(name = "가계부 소비 루틴 페이지", description = "가계부 소비 루틴에 관한 API")
 @Slf4j
 @Validated
@@ -45,6 +47,7 @@ public class RoutineController {
             summary = "소비 루틴 등록 API",
             description = "해당 API는 소비 루틴을 등록하는 기능을 제공합니다. 예산 ID는 Path Variable로 전달하며, 카테고리, 금액, 설명 등의 루틴 정보는 RequestBody로 전달합니다. " +
                     "먼저 '한 달 예산 내역 조회 API'를 통해 본인의 예산 목록을 확인한 후, 해당 예산에 포함된 모든 소비 카테고리를 기준으로 요청 데이터를 구성해 주세요. " +
+                    "기존 예산에 저장되어 있는 카테고리 이외에 새로운 카테고리와 금액을 등록할 경우, 요청 데이터에 포함해주세요." +
                     "카테고리별 예산 금액이 기존과 다를 경우, 수정된 금액으로 요청하시면 해당 금액이 반영됩니다."
     )
     @ApiSuccessCodeExample(resultClass = RoutineResponse.RoutineCreateResultDTO.class)
@@ -52,6 +55,7 @@ public class RoutineController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_ALREADY_EXIST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "CONSUMPTION_CATEGORY_NAME_MISSING_IN_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
@@ -80,9 +84,9 @@ public class RoutineController {
     })
     @Parameter(name = "cursorId", description = "커서(이전 요청에서 마지막 소비 루틴 아이디), 첫번째 요청일 시에는 파라미터에 포함하지 않아도 됩니다.", example = "10", required = false)
     @GetMapping("/users")
-    public ApiResponse<RoutineResponse.MyRoutineListDTO> getMyRoutines(@RequestParam(required = false) Long cursorId) {
-        // 로그인 전까지 userId 1로 임시 세팅
-        RoutineResponse.MyRoutineListDTO response = routineQueryService.getMyRoutineList(1L, cursorId);
+    public ApiResponse<RoutineResponse.MyRoutineListDTO> getMyRoutines(@RequestParam(required = false) Long cursorId, HttpServletRequest servletRequest) {
+        Long userId = authUtil.getUserIdFromRequest(servletRequest);
+        RoutineResponse.MyRoutineListDTO response = routineQueryService.getMyRoutineList(userId, cursorId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -121,9 +125,9 @@ public class RoutineController {
             @Parameter(name = "routineId", description = "조회하려는 소비 루틴 아이디", example = "1", required = true),
     })
     @GetMapping("/users/{routineId}")
-    public ApiResponse<RoutineResponse.RoutineDetailDTO> getMyDetailRoutine(@PathVariable Long routineId) {
-        // 로그인 전까지 userId 1로 임시 세팅
-        RoutineResponse.RoutineDetailDTO response = routineQueryService.getUserRoutineDetail(1L, routineId);
+    public ApiResponse<RoutineResponse.RoutineDetailDTO> getMyDetailRoutine(@PathVariable Long routineId, HttpServletRequest servletRequest) {
+        Long userId = authUtil.getUserIdFromRequest(servletRequest);
+        RoutineResponse.RoutineDetailDTO response = routineQueryService.getUserRoutineDetail(userId, routineId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -171,56 +175,63 @@ public class RoutineController {
         return ApiResponse.onSuccess(response);
     }
 
-    // 소비 루틴 예산 반영 전 수정/추가
+    // 소비 루틴 예산 반영 전 수정/추가(미리 보기)_
     @Operation(
-            summary = "소비 루틴 예산 반영 전 수정/추가 API",
-            description = "내 예산에 반영-> 네 를 클릭하면 보여주는 api 입니다."+
-                    "사용자가 갖고 있는 기존 카테고리는 '카테고리별 예산', 새로운 카테고리는 '소비 루틴 카테고리' 보여줍니다."
+            summary = "소비 루틴 예산 반영 전 수정/추가(미리보기) API",
+            description = "해당 API는 소비 루틴을 예산에 반영하기 전에, 적용 시 변경될 카테고리별 금액을 미리 확인할 수 있도록 합니다. " +
+                    "'내 예산에 반영 → 네'를 선택하기 전, 기존 예산에 포함된 카테고리는 '카테고리별 예산'으로, 새롭게 추가되는 카테고리는 '소비 루틴 카테고리'로 구분하여 보여줍니다."
     )
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_ALREADY_APPLIED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
     @Parameters({
-            @Parameter(name = "routineId", description = "조회하려는 소비 루틴 아이디", example = "1", required = true),
+            @Parameter(name = "routineId", description = "가져오려는 소비 루틴 아이디", example = "1", required = true),
     })
     @GetMapping("/list/{routineId}/apply-info")
-    public ApiResponse<RoutineResponse.ApplyRoutineInfoDTO> getRoutineApplyInfo(@PathVariable Long routineId){
+    public ApiResponse<RoutineResponse.ApplyRoutineInfoDTO> getRoutineApplyInfo(@PathVariable Long routineId, HttpServletRequest servletRequest) {
 
-        RoutineResponse.ApplyRoutineInfoDTO response = RoutineResponse.ApplyRoutineInfoDTO.builder().build();
+        Long userId = authUtil.getUserIdFromRequest(servletRequest);
+        RoutineResponse.ApplyRoutineInfoDTO response = routineQueryService.getRoutineApplyInfo(userId, routineId);
         return ApiResponse.onSuccess(response);
 
     }
 
     // 소비 루틴 예산 반영
     @Operation(
-            summary = "소비 루틴 예산 반영 API",
-            description = "실제 예산에 반영. 새로운 카테고리는 ROUTINE_CATEGORY로 추가"
+            summary = "타인의 소비 루틴을 내 예산에 반영 API",
+            description = "해당 API는 사용자가 직접 예산을 등록하거나 수정하는 것이 아닌, 타인의 소비 루틴을 자신의 예산에 반영할 때 사용합니다. " +
+                    "반영 전에는 '소비 루틴 예산 미리보기 API'를 통해 카테고리 관련 요청 데이터를 구성합니다." +
+                    "필요 시 금액을 수정하거나 항목을 추가할 수 있습니다. " +
+                    "만약 새로운 소비 카테고리를 추가한 경우에는 customCategoryBudgets에 타입을 CUSTOM으로 지정하여 포함시켜야 합니다."
     )
     @ApiErrorCodeExamples({
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "USER_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "BUDGET_NOT_FOUND"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_EXCEEDED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "TOTAL_BUDGET_TOO_LOW"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_NOT_FOUND"),
+            @ApiErrorCodeExample(value = ErrorStatus.class, name = "ROUTINE_ALREADY_APPLIED"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_BAD_REQUEST"),
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @Parameters({
-            @Parameter(name = "routineId", description = "소비 루틴 ID", required = true, example = "1")
+            @Parameter(name = "budgetId", description = "현재 월의 예산 아이디", example = "1", required = true),
+            @Parameter(name = "routineId", description = "가져오려는 타인의 소비 루틴 ID", example = "1", required = true)
     })
-    @PutMapping("/list/{routineId}/apply")
-    public ApiResponse<RoutineResponse.ApplyRoutineSuccessDTO> applyRoutineToBudget(
-            @PathVariable Long routineId,
-            @Valid @RequestBody RoutineRequest.ApplyRoutineBudgetDTO request
+    @PatchMapping("/list/{routineId}/apply")
+    public ApiResponse<String> applyRoutineToBudget(
+            @RequestParam Long budgetId,
+            @RequestParam Long routineId,
+            @Valid @RequestBody RoutineRequest.ApplyRoutineBudgetDTO request,
+            HttpServletRequest servletRequest
     ){
-
-        RoutineResponse.ApplyRoutineSuccessDTO response = RoutineResponse.ApplyRoutineSuccessDTO.builder()
-                .message("예산에 성공적으로 반영되었습니다.")
-                .build();
-
-        return ApiResponse.onSuccess(response);
+        Long userId = authUtil.getUserIdFromRequest(servletRequest);
+        routineCommandService.applyRoutineToBudget(userId, budgetId, routineId, request);
+        return ApiResponse.onSuccess("예산에 성공적으로 반영되었습니다.");
     }
 
     // 소비 루틴 검색 (커서 기반 무한 스크롤)

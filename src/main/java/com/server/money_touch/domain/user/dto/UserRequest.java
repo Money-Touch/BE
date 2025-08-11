@@ -30,7 +30,7 @@ public class    UserRequest{
         @NotBlank(message = "직업값은 필수입니다.")
         private String job;
 
-        @Schema(description = "수입 여부", example = "예")
+        @Schema(description = "수입 여부", example = "yes")
         @NotBlank(message = "수입 여부는 필수값입니다.")
         private String isIncome;
 
@@ -61,6 +61,10 @@ public class    UserRequest{
         @NotBlank
         private String nickname;
 
+        @Schema(description = "사진 URL", example = "http://example.com/image.jpg")
+        private String profileImgUrl;
+
+
     };
 
     @Getter
@@ -78,6 +82,10 @@ public class    UserRequest{
 
         @Schema(description = "닉네임", example = "잔디")
         private String nickname;
+
+        // 선택: 카카오에서 프로필 사진을 제공한 경우
+        @Schema(description = "사진 URL", example = "http://example.com/image.jpg")
+        private String profileImgUrl;
 
         // 선택: 카카오에서 이메일을 제공한 경우
         @Schema(description = "이메일", example = "example@kakao.com")

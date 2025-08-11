@@ -11,12 +11,12 @@ public interface ConsumptionRecordQueryService {
     // 가계부 일일 소비 내역 조회
     HouseholdConsumptionResponse.DailyConsumptionDetailDTO getDailyConsumptionRecordDetail(@ExistUser Long userId, @ExistConsumptionRecord Long consumptionRecordId);
 
-    // 가계부 달력 - 특정 날짜의 소비 내역 조회
-    HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO getCalendarDailyConsumptionRecordsDetail(@ExistUser Long userId, int year, int month, int day);
+    // 가계부 해당 월의 소비 내역 목록 조회
+    HouseholdConsumptionResponse.MonthlyHistoryResponseDTO getMonthlyConsumptionRecords(@ExistUser Long userId, int year, int month, Long cursorId);
 
     // 가계부 달력 - 월별 소비 금액 조회
     HouseholdConsumptionResponse.CalendarDateAmountMapDTO getMonthlyConsumptionCalendar(@ExistUser Long userId, int year, int month);
 
-    // 가계부 달력 - 해당 월의 소비 내역 목록 조회
-    HouseholdConsumptionResponse.MonthlyHistoryResponseDTO getMonthlyConsumptionRecords(@ExistUser Long userId, int year, int month, Long cursorId);
+    // 가계부 달력 - 특정 날짜의 소비 내역 조회
+    HouseholdConsumptionResponse.CalendarDailyConsumeSliceResponse getCalendarDailyConsumptionRecordsDetail(@ExistUser Long userId, int year, int month, int day, Long cursorId);
 }

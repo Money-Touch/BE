@@ -5,9 +5,11 @@ import com.server.money_touch.domain.consumptionRecord.dto.HouseholdConsumptionR
 import com.server.money_touch.domain.consumptionRecord.dto.HouseholdConsumptionResponse;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
+import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemDetailProjection;
 import com.server.money_touch.domain.consumptionRecord.projection.DailyConsumptionItemProjection;
 import com.server.money_touch.domain.fixedConsumption.entity.FixedConsumption;
 import com.server.money_touch.domain.user.entity.User;
+import org.springframework.data.domain.Slice;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -54,20 +56,7 @@ public class ConsumptionRecordConverter {
                 .build();
     }
 
-
-    // 달력 - 특정 날짜의 소비 내역 조회 응답
-    public static HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO toCalendarDailyConsumeDetailDTO(
-            LocalDate targetDate,
-            List<HouseholdConsumptionResponse.ConsumeItemDTO> items
-    ) {
-        return HouseholdConsumptionResponse.CalendarDailyConsumeDetailDTO.builder()
-                .date(targetDate.toString())
-                .items(items)
-                .itemSize(items.size())
-                .build();
-    }
-
-    // 달력 무한스크롤 - 한달 소비 기록 조회 목록 응답 정보
+    // 소비 내역 무한스크롤 - 한달 소비 기록 조회 목록 응답 정보
     public static HouseholdConsumptionResponse.MonthlyHistoryResponseDTO toMonthlyHistoryResponseDTO(
             List<HouseholdConsumptionResponse.DailyHistoryDTO> dailyHistory,
             boolean isFirst,
@@ -84,7 +73,7 @@ public class ConsumptionRecordConverter {
                 .build();
     }
 
-    // 달력 무한스크롤 - 날짜별 소비 기록 조회 응답 정보
+    // 소비 내역 무한스크롤 - 날짜별 소비 기록 조회 응답 정보
     public static HouseholdConsumptionResponse.DailyHistoryDTO toDailyHistoryDTO(LocalDate date, List<HouseholdConsumptionResponse.DailyRecordDTO> records) {
         return HouseholdConsumptionResponse.DailyHistoryDTO.builder()
                 .date(date.toString())
@@ -93,7 +82,7 @@ public class ConsumptionRecordConverter {
                 .build();
     }
 
-    // 달력 무한스크롤 - 날짜별 상세 소비 기록 조회 응답 정보
+    // 소비 내역 무한스크롤 - 날짜별 상세 소비 기록 조회 응답 정보
     public static HouseholdConsumptionResponse.DailyRecordDTO toDailyRecordDTO(DailyConsumptionItemProjection projection) {
         return HouseholdConsumptionResponse.DailyRecordDTO.builder()
                 .consumptionRecordId(projection.getConsumptionRecordId())
@@ -118,6 +107,33 @@ public class ConsumptionRecordConverter {
                 .wiseCount(0)
                 .wasteCount(0)
                 .viewCount(0)
+                .build();
+    }
+
+    // 달력 - 특정 날짜의 소비 내역 무한스크롤 조회 응답
+    public static HouseholdConsumptionResponse.CalendarDailyConsumeSliceResponse toCalendarDailyConsumeSliceResponse(
+            LocalDate targetDate,
+            Slice<DailyConsumptionItemDetailProjection> slice,
+            Long nextCursorId,
+            boolean isFirst
+    ) {
+        List<HouseholdConsumptionResponse.ConsumeItemDTO> items = slice.getContent().stream()
+                .map(p -> HouseholdConsumptionResponse.ConsumeItemDTO.builder()
+                        .consumptionRecordId(p.getConsumptionRecordId())
+                        .categoryName(p.getCategoryName())
+                        .content(p.getContent())
+                        .amount(p.getAmount())
+                        .build())
+                .toList();
+
+        return HouseholdConsumptionResponse.CalendarDailyConsumeSliceResponse.builder()
+                .date(targetDate.toString())
+                .items(items)
+                .itemSize(items.size())
+                .isFirst(isFirst)
+                .isLast(!slice.hasNext())
+                .hasNext(slice.hasNext())
+                .nextCursorId(nextCursorId)
                 .build();
     }
 }

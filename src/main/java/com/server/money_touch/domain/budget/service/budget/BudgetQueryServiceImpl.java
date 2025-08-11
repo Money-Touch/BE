@@ -7,7 +7,6 @@ import com.server.money_touch.domain.budget.entity.BudgetCategory;
 import com.server.money_touch.domain.budget.enums.CategoryType;
 import com.server.money_touch.domain.budget.repository.budget.BudgetRepository;
 import com.server.money_touch.domain.budget.repository.budgetCategory.BudgetCategoryRepository;
-import com.server.money_touch.domain.consumptionRecord.converter.totalConsumption.TotalConsumptionConverter;
 import com.server.money_touch.domain.consumptionRecord.entity.TotalConsumption;
 import com.server.money_touch.domain.consumptionRecord.repository.totalConsumption.TotalConsumptionRepository;
 import com.server.money_touch.domain.user.entity.User;
@@ -60,26 +59,20 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
                 .collect(Collectors.groupingBy(bc -> bc.getConsumptionCategory().getBudgetCategoryType()));
 
         // 3-1. 공통 처리 함수 사용하여 DTO 변환
-        List<BudgetResponse.DefaultCategoryBudgetResponse> defaultCategories =
+        List<BudgetResponse.BudgetDetailCategoryBudgetResponse> defaultCategories =
                 convertBudgetCategories(groupedByType.get(CategoryType.DEFAULT),
-                        bc -> BudgetResponse.DefaultCategoryBudgetResponse.builder()
-                                .categoryName(bc.getConsumptionCategory().getBudgetCategoryName())
-                                .amount(bc.getBudgetCategoryMoney())
-                                .build());
+                        BudgetConverter::toBudgetDetailCategoryBudgetResponse
+                );
 
-        List<BudgetResponse.CustomCategoryBudgetResponse> customCategories =
+        List<BudgetResponse.BudgetDetailCategoryBudgetResponse> customCategories =
                 convertBudgetCategories(groupedByType.get(CategoryType.CUSTOM),
-                        bc -> BudgetResponse.CustomCategoryBudgetResponse.builder()
-                                .categoryName(bc.getConsumptionCategory().getBudgetCategoryName())
-                                .amount(bc.getBudgetCategoryMoney())
-                                .build());
+                        BudgetConverter::toBudgetDetailCategoryBudgetResponse
+                );
 
-        List<BudgetResponse.RoutineCategoryBudgetResponse> routineCategories =
+        List<BudgetResponse.BudgetDetailCategoryBudgetResponse> routineCategories =
                 convertBudgetCategories(groupedByType.get(CategoryType.ROUTINE_CATEGORY),
-                        bc -> BudgetResponse.RoutineCategoryBudgetResponse.builder()
-                                .categoryName(bc.getConsumptionCategory().getBudgetCategoryName())
-                                .amount(bc.getBudgetCategoryMoney())
-                                .build());
+                        BudgetConverter::toBudgetDetailCategoryBudgetResponse
+                );
 
         // 4. 응답 DTO 구성
         log.info("예산 조회 완료 - userId: {}, budgetId: {}", userId, budgetId);
@@ -106,20 +99,20 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
         LocalDateTime startOfMonth = LocalDate.of(year, month, 1).atStartOfDay();
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
 
-        // 해당 월의 총 소비 금액 조회, 데이터가 없다면 생성
+        // 총 소비 금액 조회 (없으면 0으로 처리)
         TotalConsumption totalConsumption = totalConsumptionRepository
                 .findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
-                .orElseGet(() -> {
-                    TotalConsumption newConsumption = TotalConsumptionConverter.toTotalConsumption(user);
-                    return totalConsumptionRepository.save(newConsumption);
-                });
+                .orElse(null);
 
-        // 해당 월의 예산 조회
-        Budget budget = budgetRepository.findByUserAndCreatedAtBetween(user, startOfMonth, endOfMonth)
-                .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_EXIST));
+        int totalAmount = (totalConsumption != null) ? totalConsumption.getTotalConsumptionAmount() : 0;
 
-        Long budgetId = budget.getId();
+        // 예산 조회 (없으면 budgetId = null)
+        // 회원가입 및 1일에 데이터가 생성되기 때문에 createdAt과 updatedAt이 같으면 아직 사용자가 직접 등록하지 않은 예산으로 간주
+        Budget budget = budgetRepository.findRegisteredBudgetInMonthNative(userId, startOfMonth, endOfMonth)
+                .orElse(null);
+
+        Long budgetId = (budget != null) ? budget.getId() : null;
         log.info("예산 아이디 및 총 소비 금액 조회 - userId: {}, budgetId: {}", userId, budgetId);
-        return BudgetConverter.toTotalConsumptionResultDto(budgetId, totalConsumption.getTotalConsumptionAmount());
+        return BudgetConverter.toTotalConsumptionResultDto(budgetId, totalAmount);
     }
 }

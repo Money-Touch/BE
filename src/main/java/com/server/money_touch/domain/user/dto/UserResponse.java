@@ -1,5 +1,6 @@
 package com.server.money_touch.domain.user.dto;
 
+import com.server.money_touch.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,6 +21,9 @@ public class UserResponse {
         @Schema(description = "유저 id", example = "1")
         private Long userId;
 
+        private String accessToken;
+        private String refreshToken;
+
         @Schema(description = "회원 생성일", example = "2021-11-08T11:44:30.327959"  )
         private LocalDateTime createdAt;
     }
@@ -31,8 +35,8 @@ public class UserResponse {
     @Schema(description = "유저 상세 정보 등록 응답 정보")
     public static class UserDetailCreateResultDTO{
 
-        @Schema(description = "유저 ID", example = "1")
-        private Long userId = 1L;
+        @Schema(description = "유저 상세 정보 ID", example = "1")
+        private Long userDetailId;
     }
 
     @Builder
@@ -41,6 +45,18 @@ public class UserResponse {
     @AllArgsConstructor
     @Schema(description = "로그인 응답 정보")
     public static class LoginResultDTO {
+        private String accessToken;
+        private String refreshToken;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "카카오 로그인 응답 정보")
+    public static class OAuthLoginResultDTO {
+        @Schema(description = "유저 id", example = "1")
+        private Long userId;
         private String accessToken;
         private String refreshToken;
     }
