@@ -9,6 +9,7 @@ import com.server.money_touch.domain.consumptionRecord.repository.totalConsumpti
 import com.server.money_touch.domain.user.converter.AuthConverter;
 import com.server.money_touch.domain.user.dto.KakaoDTO;
 import com.server.money_touch.domain.user.dto.TokenResponse;
+import com.server.money_touch.domain.user.dto.UserResponse;
 import com.server.money_touch.domain.user.entity.CustomUserDetails;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.enums.AuthType;
@@ -38,9 +39,9 @@ public class AuthService {
     private final BudgetCommandService budgetCommandService;
     private final TotalConsumptionRepository totalConsumptionRepository;
 
-    public User oAuthLogin(String accessCode,String redirectUri, HttpServletResponse httpServletResponse) {
+    public UserResponse.OAuthLoginResultDTO oAuthLogin(String accessCode, String redirectUrl,HttpServletResponse httpServletResponse) {
         // 1. access token 요청 시 동적 redirectUri 전달
-        KakaoDTO.OAuthToken oAuthToken = kakaoUtil.requestToken(accessCode, redirectUri);
+        KakaoDTO.OAuthToken oAuthToken = kakaoUtil.requestToken(accessCode, redirectUrl);
 
         // 2. 카카오 프로필 조회
         KakaoDTO.KakaoProfile kakaoProfile = kakaoUtil.requestProfile(oAuthToken);
@@ -80,7 +81,11 @@ public class AuthService {
         // 3. 헤더에 토큰 담기
         httpServletResponse.setHeader("Authorization", "Bearer " + tokenResponse.getAccessToken());
 
-        return user;
+        return UserResponse.OAuthLoginResultDTO.builder()
+                .user(user)
+                .accessToken(tokenResponse.getAccessToken())
+                .refreshToken(tokenResponse.getRefreshToken())
+                .build();
     }
 
     private User createNewUser(KakaoDTO.KakaoProfile kakaoProfile) {
