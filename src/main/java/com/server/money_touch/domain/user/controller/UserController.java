@@ -66,9 +66,9 @@ public class UserController{
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @GetMapping("/email/send")
-    public ApiResponse<String> requestEmail(@RequestParam("to") String toEmail) {
+    public ApiResponse<String> requestEmail(@RequestParam("to") String toEmail, @RequestParam boolean isResend) {
         try {
-            userQueryService.requestEmailVerification(toEmail);
+            userQueryService.requestEmailVerification(toEmail, isResend);
             return ApiResponse.onSuccess("인증 이메일이 발송되었습니다.");
         } catch (IOException e) {
             // 로그 기록 추가 가능
