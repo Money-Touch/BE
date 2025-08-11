@@ -35,8 +35,8 @@ public class UserResponse {
     @Schema(description = "유저 상세 정보 등록 응답 정보")
     public static class UserDetailCreateResultDTO{
 
-        @Schema(description = "유저 ID", example = "1")
-        private Long userId = 1L;
+        @Schema(description = "유저 상세 정보 ID", example = "1")
+        private Long userDetailId;
     }
 
     @Builder

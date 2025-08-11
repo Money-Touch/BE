@@ -37,8 +37,10 @@ public class AuthController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
     @GetMapping("/auth/login/kakao")
-    public ApiResponse<UserResponse.OAuthLoginResultDTO> kakaoLogin(@RequestParam("code") String accessCode, HttpServletResponse httpServletResponse) {
-        UserResponse.OAuthLoginResultDTO response = authService.oAuthLogin(accessCode, httpServletResponse);
+    public ApiResponse<UserResponse.OAuthLoginResultDTO> kakaoLogin(@RequestParam("code") String accessCode, String redirectUrl, HttpServletResponse httpServletResponse) {
+        UserResponse.OAuthLoginResultDTO response = authService.oAuthLogin(accessCode, redirectUrl, httpServletResponse);
         return ApiResponse.onSuccess(response);
     }
+
+
 }

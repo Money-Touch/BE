@@ -11,8 +11,8 @@ public interface UserCommandService {
     UserResponse.LoginResultDTO loginLocal(UserRequest.LocalLoginDTO request);
     // 토큰 갱신
     UserResponse.LoginResultDTO refreshToken(String refreshToken);
-
-
+    // 유저 상세정보 등록
+    UserResponse.UserDetailCreateResultDTO saveUserDetails(Long userId, UserRequest.UserDetailCreateDTO request);
 
 
 }

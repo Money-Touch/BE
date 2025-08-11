@@ -35,11 +35,15 @@ public class AuthService {
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final UserQueryService userQueryService;
     private final BudgetCommandService budgetCommandService;
     private final TotalConsumptionRepository totalConsumptionRepository;
 
-    public UserResponse.OAuthLoginResultDTO oAuthLogin(String accessCode, HttpServletResponse httpServletResponse) {
-        KakaoDTO.OAuthToken oAuthToken = kakaoUtil.requestToken(accessCode);
+    public UserResponse.OAuthLoginResultDTO oAuthLogin(String accessCode, String redirectUrl,HttpServletResponse httpServletResponse) {
+        // 1. access token 요청 시 동적 redirectUri 전달
+        KakaoDTO.OAuthToken oAuthToken = kakaoUtil.requestToken(accessCode, redirectUrl);
+
+        // 2. 카카오 프로필 조회
         KakaoDTO.KakaoProfile kakaoProfile = kakaoUtil.requestProfile(oAuthToken);
         String email = kakaoProfile.getKakaoAccount().getEmail();
 
@@ -47,7 +51,7 @@ public class AuthService {
         User user;
         boolean isNewUser = false;
 
-        if (userRepository.existsByEmail(email)) {
+        if (userQueryService.existsByEmail(email)) {
             user = userRepository.findByEmail(email).get();
         } else {
             user = createNewUser(kakaoProfile); // 등록되지않은 회원이면 회원가입
