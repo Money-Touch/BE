@@ -34,28 +34,31 @@ public class SendGridUtil {
     }
 
 
-    public void sendEmail(String toEmail) throws IOException {
+    public void sendEmail(String toEmail, boolean isResend) throws IOException {
 
-        // 보내는 사람 (발신자)
-        Email from = new Email(fromEmail);
-        // 제목
-        String subject = "💸돈터치 이메일 발송 안내";
-        // 받는 사람 (수신자)
-        Email to = new Email(toEmail);
+        String redisKey = "emailAuth:" + toEmail;
+
+        // 재전송이면 기존 인증번호 삭제
+        if (isResend && redisTemplate.hasKey(redisKey)) {
+            redisTemplate.delete(redisKey);
+            log.info("♻ 기존 인증번호 삭제 완료 - key: {}", redisKey);
+        }
 
         // 인증번호 생성
         String authCode = generateAuthCode();
 
-        // Redis에 저장 (5분 TTL)
-        String redisKey = "emailAuth:" + toEmail;
-        redisTemplate.opsForValue().set(redisKey, authCode, 5, TimeUnit.MINUTES);
+        // TTL 설정 (최초 발송 5분, 재발송 3분)
+        long ttlMinutes = isResend ? 3 : 5;
+        redisTemplate.opsForValue().set(redisKey, authCode, ttlMinutes, TimeUnit.MINUTES);
+        log.info("✅ 인증번호 저장 완료 - key: {}, value: {}, TTL: {}분", redisKey, authCode, ttlMinutes);
 
-        // 로그 출력 (인증코드 저장 확인)
-        String savedCode = redisTemplate.opsForValue().get(redisKey);
-        log.info("✅ Redis 저장 완료 - key: {}, value: {}", redisKey, savedCode);
-
+        // 메일 발송
+        Email from = new Email(fromEmail);
+        Email to = new Email(toEmail);
+        String subject = isResend ? "💸 돈터치 이메일 인증번호 재전송 안내" : "💸 돈터치 이메일 발송 안내";
         Content content = new Content("text/plain", "인증번호: " + authCode);
         Mail mail = new Mail(from, subject, to, content);
+
 
         send(mail);
 

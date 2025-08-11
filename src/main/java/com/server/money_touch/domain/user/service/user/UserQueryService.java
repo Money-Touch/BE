@@ -15,7 +15,7 @@ public interface UserQueryService {
     Boolean existsByNickname(String nickname);
 
     // 이메일 요청및 이메일 중복 검증
-    void requestEmailVerification(String toEmail)throws IOException;
+    void requestEmailVerification(String toEmail, boolean isResend)throws IOException;
 
     // 마이페이지 유저 정보 조회
     UserResponse.MyPageResponseDTO getMyPageInfo(Long userId);
