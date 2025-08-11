@@ -4,10 +4,7 @@ import com.server.money_touch.domain.budget.entity.Budget;
 import com.server.money_touch.domain.budget.enums.CategoryType;
 import com.server.money_touch.domain.budget.service.budget.BudgetCommandService;
 import com.server.money_touch.domain.consumptionRecord.converter.totalConsumption.TotalConsumptionConverter;
-import com.server.money_touch.domain.consumptionRecord.entity.TotalConsumption;
 import com.server.money_touch.domain.consumptionRecord.repository.totalConsumption.TotalConsumptionRepository;
-import com.server.money_touch.domain.user.converter.AuthConverter;
-import com.server.money_touch.domain.user.converter.UserConverter;
 import com.server.money_touch.domain.user.dto.KakaoDTO;
 import com.server.money_touch.domain.user.dto.TokenResponse;
 import com.server.money_touch.domain.user.dto.UserResponse;
@@ -96,9 +93,11 @@ public class AuthService {
     public User createNewUser(KakaoDTO.KakaoProfile kakaoProfile) {
         String email = kakaoProfile.getKakaoAccount().getEmail();
         String kakaoKey = String.valueOf(kakaoProfile.getId());
+        String nickname = kakaoProfile.getKakaoAccount().getProfile().getNickname();
 
         // 1. User 생성
         User newUser = User.builder()
+                .nickname(nickname)
                 .email(email)
                 .authType(AuthType.KAKAO)
                 .role(Role.USER)
