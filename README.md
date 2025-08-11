@@ -21,9 +21,6 @@
   <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=white">
 </p>
 
-## 🖋️ ERD
-<img width="2310" height="1082" alt="image" src="https://github.com/user-attachments/assets/cfbdb82d-d72e-48f6-8026-49baac44969e" />
-
 ## 🛠 Server Architecture
 
 ## 👤 Backend Developers
