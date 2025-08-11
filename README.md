@@ -22,6 +22,7 @@
 </p>
 
 ## 🛠 Server Architecture
+<img width="2292" height="1752" alt="Image" src="https://github.com/user-attachments/assets/a1e729b0-4add-4a4f-912e-45ce45ad1eb3" />
 
 ## 👤 Backend Developers
 
