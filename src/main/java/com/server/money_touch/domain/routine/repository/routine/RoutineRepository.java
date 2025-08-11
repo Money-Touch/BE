@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface RoutineRepository extends JpaRepository<Routine, Long>, RoutineRepositoryCustom {
+
     // 현재 예산(budgetId)과 연월(createdMonth)에 해당하는 루틴이 존재하는지 확인 + PESSIMISTIC_WRITE 락
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM Routine r " +
@@ -21,5 +22,6 @@ public interface RoutineRepository extends JpaRepository<Routine, Long>, Routine
             @Param("budgetId") Long budgetId,
             @Param("createdMonth") String createdMonth
     );
+
     Optional<Routine> findByIdAndUserId(Long routineId, Long userId);
 }
