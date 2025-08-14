@@ -8,10 +8,7 @@ import com.server.money_touch.domain.user.entity.SocialLogin;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.entity.UserDetail;
 import com.server.money_touch.domain.user.enums.AuthType;
-import com.server.money_touch.domain.user.enums.Gender;
 import com.server.money_touch.domain.user.enums.Role;
-
-import java.time.LocalDateTime;
 
 
 public class UserConverter {
@@ -98,6 +95,7 @@ public class UserConverter {
     public static UserResponse.MyPageResponseDTO toMyPageResponseDTO(User user, Badge badge){
 
         return UserResponse.MyPageResponseDTO.builder()
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .profileImgUrl(user.getProfileImgUrl())
                 .representativeBadgeImageUrl(badge != null ? badge.getImageUrl() : null)
