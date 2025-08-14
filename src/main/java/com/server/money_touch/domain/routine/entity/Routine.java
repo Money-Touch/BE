@@ -11,14 +11,14 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Entity
-@Table(
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "unique_user_budget_month",
-                        columnNames = {"user_id", "budget_id", "created_month"}
-                )
-        }
-)
+//@Table(
+//        uniqueConstraints = {
+//                @UniqueConstraint(
+//                        name = "unique_user_budget_month",
+//                        columnNames = {"user_id", "budget_id", "created_month"}
+//                )
+//        }
+//)
 public class Routine extends BaseEntity {
     @Column(length = 20, nullable = false)
     private String routineName;
@@ -26,7 +26,7 @@ public class Routine extends BaseEntity {
     @Column(nullable = false)
     private String routineImageUrl;
 
-    @Column(columnDefinition = "INT DEFAULT 0",  nullable = false)
+    @Column(columnDefinition = "INT DEFAULT 0")
     private Integer routineTotalAmount; // 소비 루틴 총 금액
 
     // 생성일, "YYYY-MM" 형식으로 저장 (예: 2025-08)
