@@ -71,10 +71,10 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
         // 3. 예산의 createdMonth로 이번 달 판단
         String createdMonth = budget.getCreatedMonth();
 
-        // 4. 이번 달 동일 예산에 대한 루틴 존재 여부 확인 (PESSIMISTIC_WRITE)
-        if (routineRepository.findForUpdateByUserAndBudgetAndMonth(userId, budgetId, createdMonth).isPresent()) {
-            throw new ErrorHandler(ROUTINE_ALREADY_EXIST);
-        }
+//        // 4. 이번 달 동일 예산에 대한 루틴 존재 여부 확인 (PESSIMISTIC_WRITE)
+//        if (routineRepository.findForUpdateByUserAndBudgetAndMonth(userId, budgetId, createdMonth).isPresent()) {
+//            throw new ErrorHandler(ROUTINE_ALREADY_EXIST);
+//        }
 
         // 5. 카테고리 총합 계산
         int totalCategoryBudget = Optional.ofNullable(request.getBudgetList())
@@ -92,15 +92,19 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
         }
 
         // 7. 루틴 저장
-        //   - 동시에 같은 (user, budget, createdMonth) 조합이 저장되는 경쟁 상황 방지
-        //   - 유니크 제약 위반 발생 시 DataIntegrityViolationException을 잡아 예외 변환
         Routine routine = RoutineConverter.toRoutine(user, budget, request, createdMonth);
-        try {
-            routineRepository.save(routine);
-        } catch (DataIntegrityViolationException e) {
-            // 혹시 경쟁 상황으로 유니크 제약 위반 시
-            throw new ErrorHandler(ROUTINE_ALREADY_EXIST);
-        }
+        routineRepository.save(routine);
+
+//        // 7. 루틴 저장
+//        //   - 동시에 같은 (user, budget, createdMonth) 조합이 저장되는 경쟁 상황 방지
+//        //   - 유니크 제약 위반 발생 시 DataIntegrityViolationException을 잡아 예외 변환
+//        Routine routine = RoutineConverter.toRoutine(user, budget, request, createdMonth);
+//        try {
+//            routineRepository.save(routine);
+//        } catch (DataIntegrityViolationException e) {
+//            // 혹시 경쟁 상황으로 유니크 제약 위반 시
+//            throw new ErrorHandler(ROUTINE_ALREADY_EXIST);
+//        }
 
         // 8. RoutineAmount 저장
         List<RoutineAmount> routineAmounts = request.getBudgetList().stream()
