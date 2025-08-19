@@ -8,8 +8,9 @@
 <p>
 <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
 <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=openjdk&logoColor=white">
-<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
 <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white">
+<img src="https://img.shields.io/badge/OAuth2.0-3C3C3D?style=for-the-badge&logo=oauth&logoColor=white">
+<img src="https://img.shields.io/badge/SendGrid-0085CA?style=for-the-badge&logo=sendgrid&logoColor=white">
 <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
 </p>
 <p>
@@ -21,8 +22,9 @@
   <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=white">
 </p>
 
+
 ## 🛠 Server Architecture
-<img width="1955" height="1590" alt="Image" src="https://github.com/user-attachments/assets/849708ec-c94a-4a8b-b481-e94c7448f250" />
+<img width="1955" height="1540" alt="돈터치 아키텍처" src="https://github.com/user-attachments/assets/acc1630f-5eca-4a2f-aaa8-110ac448bee8" />
 
 ## 👤 Backend Developers
 
