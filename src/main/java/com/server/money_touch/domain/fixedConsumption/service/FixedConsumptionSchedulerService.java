@@ -12,7 +12,6 @@ import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategor
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionCategory.ConsumptionCategoryRepository;
 import com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord.ConsumptionRecordRepository;
-import com.server.money_touch.domain.fixedConsumption.entity.FixedConsumption;
 import com.server.money_touch.domain.fixedConsumption.repository.FixedConsumptionRepository;
 import com.server.money_touch.domain.user.entity.User;
 import com.server.money_touch.domain.user.repository.user.UserRepository;

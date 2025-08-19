@@ -26,7 +26,6 @@ import com.server.money_touch.global.apiPayload.exception.handler.ErrorHandler;
 import com.server.money_touch.domain.budget.enums.CategoryType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;

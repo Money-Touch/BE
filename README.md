@@ -1,6 +1,6 @@
 # 🌱 UMC 8th 돈터치 Backend 🌱
 ## 🤑 Introduce
-<img width="1564" height="874" alt="image" src="https://github.com/user-attachments/assets/af8d2a9d-636e-4a9e-97f8-da505bd8d40d" />
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/c9ee2c8b-74e9-4162-88a2-c3e651be45f8" />
 
 **돈터치**는 소비 관리 플랫폼으로, 소비 기록과 분석을 중심으로 **예산 관리와 소비 습관 개선**을 지원합니다. SNS 형식의 소비 피드와 랭킹·배지 시스템을 통해 사용자 간 소통과 경쟁을 활성화하며, 가계부·소비 루틴·고정비 관리 등 체계적인 소비 관리 서비스를 제공합니다.
 
@@ -22,7 +22,7 @@
 </p>
 
 ## 🛠 Server Architecture
-<img width="2292" height="1752" alt="Image" src="https://github.com/user-attachments/assets/a1e729b0-4add-4a4f-912e-45ce45ad1eb3" />
+<img width="1955" height="1590" alt="Image" src="https://github.com/user-attachments/assets/849708ec-c94a-4a8b-b481-e94c7448f250" />
 
 ## 👤 Backend Developers
 
