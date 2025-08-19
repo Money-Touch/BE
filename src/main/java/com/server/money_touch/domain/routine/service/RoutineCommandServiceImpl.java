@@ -71,10 +71,10 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
         // 3. 예산의 createdMonth로 이번 달 판단
         String createdMonth = budget.getCreatedMonth();
 
-//        // 4. 이번 달 동일 예산에 대한 루틴 존재 여부 확인 (PESSIMISTIC_WRITE)
-//        if (routineRepository.findForUpdateByUserAndBudgetAndMonth(userId, budgetId, createdMonth).isPresent()) {
-//            throw new ErrorHandler(ROUTINE_ALREADY_EXIST);
-//        }
+        // 4. 이번 달 동일 예산에 대한 루틴 존재 여부 확인 (PESSIMISTIC_WRITE)
+        if (routineRepository.findForUpdateByUserAndBudgetAndMonth(userId, budgetId, createdMonth).isPresent()) {
+            throw new ErrorHandler(ROUTINE_ALREADY_EXIST);
+        }
 
         // 5. 카테고리 총합 계산
         int totalCategoryBudget = Optional.ofNullable(request.getBudgetList())
@@ -108,9 +108,10 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
                 .collect(Collectors.toList());
         routineAmountRepository.saveAll(routineAmounts);
 
-        // 9. 해시태그 저장
-        if (request.getHashtags() != null) {
+        // 9. 해시태그 저장 (최대 3개까지만)
+        if (request.getHashtags() != null && !request.getHashtags().isEmpty()) {
             List<RoutineHashtag> hashtags = request.getHashtags().stream()
+                    .limit(3) // ✅ 최대 3개 제한
                     .map(tag -> RoutineHashtagConverter.toRoutineHashtag(routine, tag))
                     .collect(Collectors.toList());
             routineHashtagRepository.saveAll(hashtags);

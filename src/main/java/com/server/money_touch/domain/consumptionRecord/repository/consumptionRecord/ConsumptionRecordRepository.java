@@ -1,5 +1,6 @@
 package com.server.money_touch.domain.consumptionRecord.repository.consumptionRecord;
 
+import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionCategory;
 import com.server.money_touch.domain.consumptionRecord.entity.ConsumptionRecord;
 import com.server.money_touch.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

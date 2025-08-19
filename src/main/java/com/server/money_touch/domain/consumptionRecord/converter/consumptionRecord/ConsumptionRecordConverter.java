@@ -101,7 +101,7 @@ public class ConsumptionRecordConverter {
                 .content(fixedConsumption.getFixedConsumptionContent())
                 .memo(fixedConsumption.getFixedConsumptionMemo())
                 .consumeDate(startOfMonth)
-                .isPublic(true) // 가계부에만 등록
+                .isPublic(false) // 가계부에만 등록
                 .isFixed(true) // 고정비 여부
                 .commentCount(0)
                 .wiseCount(0)

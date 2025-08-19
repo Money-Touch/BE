@@ -44,6 +44,10 @@ public class Budget extends BaseEntity {
         this.budgetTotal = budgetTotal;
     }
 
+    public void addTotalBudget(Integer budgetTotal) {
+        this.budgetTotal += budgetTotal;
+    }
+
     public void updateIsFromRoutine(Boolean isFromRoutine) {
         this.isFromRoutine = isFromRoutine;
     }

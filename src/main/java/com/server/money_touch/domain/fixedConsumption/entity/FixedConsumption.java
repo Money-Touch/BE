@@ -23,6 +23,10 @@ public class FixedConsumption extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String categoryName;
 
+    // ✅ 이번 달 반영 여부
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean appliedThisMonth;
+
     // 고정비-유저 다대일 연관관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -33,5 +37,15 @@ public class FixedConsumption extends BaseEntity {
         this.fixedConsumptionContent = content;
         this.fixedConsumptionMemo = memo;
         this.categoryName = categoryName;
+    }
+
+    // ✅ 이번 달 반영 처리
+    public void markAsApplied() {
+        this.appliedThisMonth = true;
+    }
+
+    // ✅ 초기화 처리 (스케줄러에서 사용)
+    public void resetAppliedFlag() {
+        this.appliedThisMonth = false;
     }
 }
