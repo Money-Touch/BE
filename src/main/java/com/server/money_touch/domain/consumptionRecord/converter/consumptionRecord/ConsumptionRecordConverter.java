@@ -14,25 +14,38 @@ import org.springframework.data.domain.Slice;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public class ConsumptionRecordConverter {
 
     // 일일 소비 기록 시 소비 카테고리 엔티티 생성
-    public static ConsumptionRecord toDailyConsumptionRecord(User user, ConsumptionCategory consumptionCategory, HouseholdConsumptionRequest.DailyConsumptionCreateDTO requestDTO, Boolean isPublic) {
-        return ConsumptionRecord.builder()
+    public static ConsumptionRecord toDailyConsumptionRecord(
+            User user,
+            ConsumptionCategory consumptionCategory,
+            HouseholdConsumptionRequest.DailyConsumptionCreateDTO requestDTO,
+            Boolean isPublic
+    ) {
+        var builder = ConsumptionRecord.builder()
                 .user(user)
                 .consumptionCategory(consumptionCategory)
                 .amount(requestDTO.getAmount())
                 .content(requestDTO.getContent())
-                .memo(requestDTO.getMemo())
                 .consumeDate(requestDTO.getConsumeDate())
                 .isPublic(isPublic) // 일일 소비 기록은 피드 없이 가계부에만 등록
                 .commentCount(0)
                 .wiseCount(0)
                 .wasteCount(0)
-                .viewCount(0)
-                .build();
+                .viewCount(0);
+
+        // memo가 있을 때(공백 제외)만 세팅
+        Optional.ofNullable(requestDTO.getMemo())
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .ifPresent(builder::memo);
+
+        return builder.build();
     }
+
 
     // 소비 기록 응답
     public static ConsumptionRecordResponse.ConsumptionRecordCreateResultDTO toConsumptionRecordCreateResultDTO(Long consumptionRecordId){

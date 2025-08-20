@@ -36,7 +36,7 @@ public class FixedConsumptionController {
 
     @Operation(
             summary = "고정비 등록 API",
-            description = "고정비 등록 API 입니다. 금액, 카테고리, 항목명, 메모를 RequestBody로 입력받아 고정비를 등록합니다."
+            description = "고정비 등록 API 입니다. 금액, 카테고리, 항목명, 메모를 RequestBody로 입력받아 고정비를 등록합니다. 메모가 없다면 RequestBody에 포함하지 않아도 됩니다."
     )
     @ApiSuccessCodeExample(resultClass = FixedConsumptionResponse.FixedConsumptionCreateResultDTO.class)
     @ApiErrorCodeExamples({

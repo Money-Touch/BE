@@ -17,7 +17,7 @@ public class FixedConsumption extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String fixedConsumptionContent;
 
-    @Column(nullable = false, length = 1000)
+    @Column(length = 1000)
     private String fixedConsumptionMemo;
 
     @Column(nullable = false, length = 20)

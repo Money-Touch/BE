@@ -29,7 +29,6 @@ public class FixedConsumptionRequest {
         private String content;
 
         @Schema(description = "메모", example = "가족 공유 요금제")
-        @NotNull(message = "메모는 필수입니다.")
         @Size(max = 1000, message = "항목명은 1000자 이하로 입력해주세요.")
         private String memo;
     }
