@@ -89,7 +89,6 @@ public class BudgetQueryServiceImpl implements BudgetQueryService {
     }
 
     // 예산 아이디 및 총 소비 금액 조회
-    @Transactional(readOnly = true)
     @Override
     public BudgetResponse.TotalConsumptionResultDTO findBudgetByIdAndTotalConsumption(Long userId, Integer year, Integer month) {
         User user = userRepository.findById(userId)

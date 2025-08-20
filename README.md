@@ -1,6 +1,6 @@
 # 🌱 UMC 8th 돈터치 Backend 🌱
 ## 🤑 Introduce
-<img width="1564" height="874" alt="image" src="https://github.com/user-attachments/assets/af8d2a9d-636e-4a9e-97f8-da505bd8d40d" />
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/c9ee2c8b-74e9-4162-88a2-c3e651be45f8" />
 
 **돈터치**는 소비 관리 플랫폼으로, 소비 기록과 분석을 중심으로 **예산 관리와 소비 습관 개선**을 지원합니다. SNS 형식의 소비 피드와 랭킹·배지 시스템을 통해 사용자 간 소통과 경쟁을 활성화하며, 가계부·소비 루틴·고정비 관리 등 체계적인 소비 관리 서비스를 제공합니다.
 
@@ -8,8 +8,9 @@
 <p>
 <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
 <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=openjdk&logoColor=white">
-<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
 <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white">
+<img src="https://img.shields.io/badge/OAuth2.0-3C3C3D?style=for-the-badge&logo=oauth&logoColor=white">
+<img src="https://img.shields.io/badge/SendGrid-0085CA?style=for-the-badge&logo=sendgrid&logoColor=white">
 <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
 </p>
 <p>
@@ -21,8 +22,9 @@
   <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=white">
 </p>
 
+
 ## 🛠 Server Architecture
-<img width="2292" height="1752" alt="Image" src="https://github.com/user-attachments/assets/a1e729b0-4add-4a4f-912e-45ce45ad1eb3" />
+<img width="1955" height="1540" alt="돈터치 아키텍처" src="https://github.com/user-attachments/assets/acc1630f-5eca-4a2f-aaa8-110ac448bee8" />
 
 ## 👤 Backend Developers
 

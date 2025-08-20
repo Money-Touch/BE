@@ -1,11 +1,8 @@
 package com.server.money_touch.domain.routine.service;
 
-import com.server.money_touch.domain.home.dto.HomeResponse;
 import com.server.money_touch.domain.routine.dto.RoutineResponse;
 import com.server.money_touch.global.validation.annotation.ExistRoutine;
 import com.server.money_touch.global.validation.annotation.ExistUser;
-
-import java.util.List;
 
 public interface RoutineQueryService {
     // 소비 루틴 존재 여부 검증

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BudgetCategoryRepository extends JpaRepository<BudgetCategory, Long>, BudgetCategoryRepositoryCustom {
     @Query("""
@@ -39,5 +40,7 @@ public interface BudgetCategoryRepository extends JpaRepository<BudgetCategory, 
 
     @Query("SELECT bc FROM BudgetCategory bc JOIN FETCH bc.consumptionCategory WHERE bc.budget = :budget")
     List<BudgetCategory> findByBudgetWithConsumptionCategory(@Param("budget") Budget budget);
+
+    Optional<BudgetCategory> findByBudgetAndConsumptionCategory(Budget budget, ConsumptionCategory category);
 }
 

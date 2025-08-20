@@ -3,6 +3,7 @@ package com.server.money_touch.domain.fixedConsumption.repository;
 import com.server.money_touch.domain.fixedConsumption.entity.FixedConsumption;
 import com.server.money_touch.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -13,4 +14,8 @@ public interface FixedConsumptionRepository extends JpaRepository<FixedConsumpti
     List<FixedConsumption> findAllByUser(User user);
 
     Optional<FixedConsumption> findByIdAndUserId(Long id, Long userId);
+
+    @Modifying
+    @Query("UPDATE FixedConsumption fc SET fc.appliedThisMonth = false")
+    void resetAllFlags();
 }

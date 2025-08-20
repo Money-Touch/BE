@@ -27,4 +27,8 @@ public class BudgetCategory extends BaseEntity {
     public void updateAmount(Integer newAmount) {
         this.budgetCategoryMoney = newAmount;
     }
+
+    public void addAmount(Integer newAmount) {
+        this.budgetCategoryMoney += newAmount;
+    }
 }
