@@ -10,6 +10,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -21,12 +23,22 @@ public class FixedConsumptionRepositoryImpl implements FixedConsumptionRepositor
 
     // 커서 기반 고정비 목록 조회
     @Override
-    public Slice<FixedConsumption> findFixedConsumptionsByCursor(Long userId, Long cursorId, Pageable pageable) {
+    public Slice<FixedConsumption> findFixedConsumptionsByCursor(
+            Long userId, Long cursorId, int year, int month, Pageable pageable) {
+
         BooleanBuilder condition = new BooleanBuilder();
         condition.and(fixed.user.id.eq(userId));
+
+        // 커서 조건
         if (cursorId != null) {
-            condition.and(fixed.id.lt(cursorId)); // id 역순으로 작아야 이후 커서
+            condition.and(fixed.id.lt(cursorId));
         }
+
+        // ✅ 해당 달보다 이후에 생성된 고정비는 보이지 않도록 필터링
+        LocalDate firstDay = LocalDate.of(year, month, 1);
+        LocalDateTime nextMonthStart = firstDay.plusMonths(1).atStartOfDay();
+
+        condition.and(fixed.createdAt.before(nextMonthStart));
 
         int pageSize = pageable.getPageSize();
         List<FixedConsumption> results = queryFactory
@@ -38,7 +50,7 @@ public class FixedConsumptionRepositoryImpl implements FixedConsumptionRepositor
 
         boolean hasNext = results.size() > pageSize;
         if (hasNext) {
-            results.remove(pageSize); // Slice에 반환할 범위까지만 유지
+            results.remove(pageSize);
         }
 
         return new SliceImpl<>(results, pageable, hasNext);
