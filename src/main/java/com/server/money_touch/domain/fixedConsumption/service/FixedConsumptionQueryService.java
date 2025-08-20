@@ -8,5 +8,5 @@ public interface FixedConsumptionQueryService {
     Boolean existsFixedConsumptionById(Long fixedConsumptionId);
 
     // 고정비 목록 조회 (커서 기반 무한스크롤)
-    FixedConsumptionResponse.FixedConsumptionCursorResultDTO getFixedConsumptions(@ExistUser Long userId, Long cursorId);
+    FixedConsumptionResponse.FixedConsumptionCursorResultDTO getFixedConsumptions(@ExistUser Long userId, Integer year, Integer month, Long cursorId);
 }

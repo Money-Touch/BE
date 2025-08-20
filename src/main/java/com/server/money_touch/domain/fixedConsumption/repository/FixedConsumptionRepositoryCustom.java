@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface FixedConsumptionRepositoryCustom {
     // 커서 기반 고정비 목록 조회
-    Slice<FixedConsumption> findFixedConsumptionsByCursor(Long userId, Long cursorId, Pageable pageable);
+    Slice<FixedConsumption> findFixedConsumptionsByCursor(Long userId, Long cursorId, int year, int month, Pageable pageable);
 }

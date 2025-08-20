@@ -107,12 +107,14 @@ public class FixedConsumptionController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR"),
     })
     @Parameters({
+            @Parameter(name = "year", description = "조회하려는 소비 연도", example = "2025", required = true),
+            @Parameter(name = "month", description = "조회하려는 소비 월", example = "7", required = true),
             @Parameter(name = "cursorId", description = "커서 (이전 요청의 마지막 cursorId). 첫 요청 시 생략", example = "3", required = false)
     })
     @GetMapping("list")
-    public ApiResponse<FixedConsumptionResponse.FixedConsumptionCursorResultDTO> getFixedConsumptions(@RequestParam(required = false) Long cursorId, HttpServletRequest servletRequest) {
+    public ApiResponse<FixedConsumptionResponse.FixedConsumptionCursorResultDTO> getFixedConsumptions(@RequestParam(required = true) Integer year, @RequestParam(required = true) Integer month, @RequestParam(required = false) Long cursorId, HttpServletRequest servletRequest) {
         Long userId = authUtil.getUserIdFromRequest(servletRequest);
-        FixedConsumptionResponse.FixedConsumptionCursorResultDTO response = fixedConsumptionQueryService.getFixedConsumptions(userId, cursorId);
+        FixedConsumptionResponse.FixedConsumptionCursorResultDTO response = fixedConsumptionQueryService.getFixedConsumptions(userId, year, month, cursorId);
         return ApiResponse.onSuccess(response);
     }
 
