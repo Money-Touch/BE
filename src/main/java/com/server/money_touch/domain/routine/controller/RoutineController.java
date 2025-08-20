@@ -228,18 +228,16 @@ public class RoutineController {
             @ApiErrorCodeExample(value = ErrorStatus.class, name = "_INTERNAL_SERVER_ERROR")
     })
     @Parameters({
-            @Parameter(name = "budgetId", description = "현재 월의 예산 아이디", example = "1", required = true),
             @Parameter(name = "routineId", description = "가져오려는 타인의 소비 루틴 ID", example = "1", required = true)
     })
     @PatchMapping("/list/{routineId}/apply")
     public ApiResponse<String> applyRoutineToBudget(
-            @RequestParam Long budgetId,
             @RequestParam Long routineId,
             @Valid @RequestBody RoutineRequest.ApplyRoutineBudgetDTO request,
             HttpServletRequest servletRequest
     ){
         Long userId = authUtil.getUserIdFromRequest(servletRequest);
-        routineCommandService.applyRoutineToBudget(userId, budgetId, routineId, request);
+        routineCommandService.applyRoutineToBudget(userId, routineId, request);
         return ApiResponse.onSuccess("예산에 성공적으로 반영되었습니다.");
     }
 

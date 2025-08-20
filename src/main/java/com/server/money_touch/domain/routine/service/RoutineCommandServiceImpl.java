@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -123,7 +124,7 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
     // 타인의 소비 루틴을 내 예산에 반영
     @Transactional
     @Override
-    public void applyRoutineToBudget(Long userId, Long budgetId, Long routineId, RoutineRequest.ApplyRoutineBudgetDTO request) {
+    public void applyRoutineToBudget(Long userId, Long routineId, RoutineRequest.ApplyRoutineBudgetDTO request) {
         // 1. 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.USER_NOT_FOUND));
@@ -136,9 +137,10 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
             throw new ErrorHandler(ErrorStatus.ROUTINE_PREVIEW_NOT_ALLOWED);
         }
 
-        // 3. 예산 조회
-        Budget budget = budgetRepository.findById(budgetId)
-                .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_FOUND));
+        // 3. 이번 달 예산 조회
+        String currentMonth = LocalDate.now().withDayOfMonth(1).toString().substring(0, 7); // "2025-08"
+        Budget budget = budgetRepository.findByUserIdAndCreatedMonth(userId, currentMonth)
+                .orElseThrow(() -> new ErrorHandler(BUDGET_NOT_EXIST));
 
         if (!budget.getUser().getId().equals(userId)) {
             throw new ErrorHandler(ErrorStatus.BUDGE_UNAUTHORIZED);
@@ -210,6 +212,6 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
                     }
                 });
 
-        log.info("타인의 소비 루틴을 내 예산에 반영 완료 - userId: {}, budgetId: {}, routineId: {}", userId, budgetId, routineId);
+        log.info("타인의 소비 루틴을 내 예산에 반영 완료 - userId: {}, currentMonth: {}, routineId: {}", userId, currentMonth, routineId);
     }
 }
