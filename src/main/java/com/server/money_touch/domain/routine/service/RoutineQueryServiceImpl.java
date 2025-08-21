@@ -165,9 +165,9 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
         Routine routine = routineRepository.findById(routineId)
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.ROUTINE_NOT_FOUND));
 
-        if (routine.getUser().getId().equals(userId)) {
-            throw new ErrorHandler(ErrorStatus.ROUTINE_PREVIEW_NOT_ALLOWED);
-        }
+//        if (routine.getUser().getId().equals(userId)) {
+//            throw new ErrorHandler(ErrorStatus.ROUTINE_PREVIEW_NOT_ALLOWED);
+//        }
 
         // 3. 해당 루틴의 예산 생성 월 기준으로 내 예산 조회
         Budget myBudget = budgetRepository.findByUserAndCreatedMonth(user, routine.getBudget().getCreatedMonth())
