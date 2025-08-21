@@ -32,4 +32,6 @@ public interface ConsumptionCategoryRepository extends JpaRepository<Consumption
     List<ConsumptionCategory> findAllByUserAndBudgetCategoryType(User user, CategoryType type);
 
     boolean existsByUserAndBudgetCategoryType(User user, CategoryType budgetCategoryType);
+
+    Optional<ConsumptionCategory> findByUserIdAndBudgetCategoryName(Long userId, String budgetCategoryName);
 }
