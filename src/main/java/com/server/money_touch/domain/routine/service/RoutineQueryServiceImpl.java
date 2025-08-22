@@ -202,7 +202,7 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
                         })
                         .collect(Collectors.toList());
 
-        // 7. 루틴 기반 ROUTINE_CATEGORY 구성 (CUSTOM과 이름이 겹치는 항목 포함)
+        // 7. 루틴 기반 ROUTINE_CATEGORY 구성 (CUSTOM과 이름이 겹치면 무조건 ROUTINE_CATEGORY)
         Set<String> routineCategoryNames = new HashSet<>();
         List<RoutineResponse.ApplyCategoryBudgetDTO> routineCategoryBudgets = routineAmounts.stream()
                 .filter(ra -> !defaultNames.contains(ra.getCategoryName()))
@@ -219,7 +219,7 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
                 .filter(mc -> {
                     String name = mc.getConsumptionCategory().getBudgetCategoryName();
                     return mc.getConsumptionCategory().getBudgetCategoryType() == CategoryType.CUSTOM &&
-                            !routineCategoryNames.contains(name);
+                            !routineCategoryNames.contains(name); // ✅ 겹치면 ROUTINE_CATEGORY 우선
                 })
                 .map(mc -> RoutineConverter.toCategoryDTO(
                         mc.getConsumptionCategory().getBudgetCategoryName(),
@@ -229,7 +229,6 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
                 .collect(Collectors.toList());
 
         // 9. 요청에 없는 기존 카테고리 → 금액 0으로 초기화
-        // (루틴 반영 applyRoutineToBudget 로직과 동일한 컨셉 적용)
         Set<String> requestCategoryNames = new HashSet<>();
         requestCategoryNames.addAll(defaultCategoryBudgets.stream()
                 .map(RoutineResponse.ApplyCategoryBudgetDTO::getCategoryName)
@@ -254,5 +253,4 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
                 routineCategoryBudgets
         );
     }
-
 }
