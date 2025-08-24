@@ -135,10 +135,6 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
         Routine routine = routineRepository.findById(routineId)
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.ROUTINE_NOT_FOUND));
 
-//    if (routine.getUser().getId().equals(userId)) {
-//        throw new ErrorHandler(ErrorStatus.ROUTINE_PREVIEW_NOT_ALLOWED);
-//    }
-
         // 3. 이번 달 예산 조회
         String currentMonth = LocalDate.now().withDayOfMonth(1).toString().substring(0, 7); // "2025-08"
         Budget budget = budgetRepository.findByUserIdAndCreatedMonth(userId, currentMonth)

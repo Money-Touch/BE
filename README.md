@@ -1,9 +1,9 @@
-# 🌱 UMC 8th 돈터치 Backend 🌱
-## 🤑 Introduce
+# 🤑 UMC 8th 돈터치 Backend
 <img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/c9ee2c8b-74e9-4162-88a2-c3e651be45f8" />
 
 **돈터치**는 소비 관리 플랫폼으로, 소비 기록과 분석을 중심으로 **예산 관리와 소비 습관 개선**을 지원합니다. SNS 형식의 소비 피드와 랭킹·배지 시스템을 통해 사용자 간 소통과 경쟁을 활성화하며, 가계부·소비 루틴·고정비 관리 등 체계적인 소비 관리 서비스를 제공합니다.
 
+&nbsp;
 ## 🔧 Tech Stack
 <p>
 <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
@@ -22,10 +22,20 @@
   <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=white">
 </p>
 
+&nbsp;
+## ✨ Main Feature
+<img width="1920" height="1080" alt="서비스 컨셉" src="https://github.com/user-attachments/assets/c55a89d3-3b8f-49c5-be28-6360c7c0e4ff" />
+<img width="1920" height="2160" alt="image" src="https://github.com/user-attachments/assets/a1871e9c-6872-44a1-9aec-6b2d346df298" />
+<img width="1920" height="2751" alt="image" src="https://github.com/user-attachments/assets/c23cc439-14ce-4935-8ba7-8bbff2308293" />
+<img width="1920" height="4020" alt="image" src="https://github.com/user-attachments/assets/b96879b7-c5eb-440a-b9dd-0f6f04fa3890" />
+<img width="1920" height="2557" alt="image" src="https://github.com/user-attachments/assets/8cfaab8e-e420-4792-9a54-63a1f1f4a2e3" />
 
+
+&nbsp;
 ## 🛠 Server Architecture
 <img width="1955" height="1540" alt="돈터치 아키텍처" src="https://github.com/user-attachments/assets/acc1630f-5eca-4a2f-aaa8-110ac448bee8" />
 
+&nbsp;
 ## 👤 Backend Developers
 
 <table>
@@ -61,6 +71,7 @@
     </tr>
 </table>
 
+&nbsp;
 ## 🚀 Git Flow
 - `main`
   - 프로젝트 최종 merge
@@ -78,12 +89,14 @@
 
 <!-- <img width="838" height="718" alt="Image" src="https://github.com/user-attachments/assets/530e9719-468e-457a-981a-e5fa46af82ff" /> -->
 
+&nbsp;
 ## 💡 PR Rules
 - Assignee에는 본인을 지정해 주세요.
 - Reviewers에는 본인을 제외한 백엔드 팀원 3명을 지정한 후, 카카오톡으로 공유해 주세요.
 - 이후, 팀원(1명 이상)이 PR을 확인하고 승인해서 머지해 주세요.
   (해당 브랜치는 머지 후 자동 삭제되며, 복구도 가능합니다.)
 
+&nbsp;
 ## 💻 Commit Message Convention
 | **Type** | **Description** |
 | --- | --- |
