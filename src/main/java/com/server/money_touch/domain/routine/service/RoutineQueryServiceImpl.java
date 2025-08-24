@@ -165,11 +165,6 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
         Routine routine = routineRepository.findById(routineId)
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.ROUTINE_NOT_FOUND));
 
-        // 본인 루틴은 미리보기 제한 (단, userId=1은 예외 허용)
-        // if (!userId.equals(1L) && routine.getUser().getId().equals(userId)) {
-        //     throw new ErrorHandler(ErrorStatus.ROUTINE_PREVIEW_NOT_ALLOWED);
-        // }
-
         // 3. 해당 루틴의 예산 생성 월 기준으로 내 예산 조회
         Budget myBudget = budgetRepository.findByUserAndCreatedMonth(user, routine.getBudget().getCreatedMonth())
                 .orElseThrow(() -> new ErrorHandler(ErrorStatus.BUDGET_NOT_FOUND));
@@ -228,7 +223,19 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
                 )
                 .collect(Collectors.toList());
 
-        // 9. 요청에 없는 기존 카테고리 → 금액 0으로 초기화
+        // 9. 기존 루틴 카테고리인데 이번 루틴에 빠진 경우 → CUSTOM + 0원으로 변경
+        myCategories.stream()
+                .filter(mc -> mc.getConsumptionCategory().getBudgetCategoryType() == CategoryType.ROUTINE_CATEGORY)
+                .filter(mc -> !routineCategoryNames.contains(mc.getConsumptionCategory().getBudgetCategoryName()))
+                .forEach(mc -> customCategoryBudgets.add(
+                        RoutineConverter.toCategoryDTO(
+                                mc.getConsumptionCategory().getBudgetCategoryName(),
+                                0, // 빠졌으므로 0원
+                                CategoryType.CUSTOM // ROUTINE_CATEGORY → CUSTOM 변경
+                        )
+                ));
+
+        // 10. 요청에 없는 기존 카테고리 → 금액 0으로 초기화 (applyRoutineToBudget 로직과 동일)
         Set<String> requestCategoryNames = new HashSet<>();
         requestCategoryNames.addAll(defaultCategoryBudgets.stream()
                 .map(RoutineResponse.ApplyCategoryBudgetDTO::getCategoryName)
